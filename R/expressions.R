@@ -5,9 +5,9 @@
 #'@references http://www.lsta.upmc.fr/Lejeune/SAS_Lejeune.pdf
 #'
 
-"(?=^\\*).*?(?=\\n)" # Commentaire 1 ligne
-"(?=^\\/\\*)(\\n|.)*?*?(?<=\\*\\/)" # Commentaire multilignes
-"(?=^libname).*?(?<=;)" # libnanme
+comment1 <-"(?=(^\\*)).*?(?=\\n)" # Commentaire 1 ligne
+comment2 <-"(?=(^\\/\\*))(\\n|.)*?(?<=\\*\\/)" # Commentaire multilignes
+libname  <- "(?=(^libname)).*?(?<=;)" # libnanme
 
 
 # Etape Data --------------------------------------------------------------
@@ -17,9 +17,9 @@ data_run       <- "(?=^data)(\\n|.)*?(?<=run;)"
 # PROC CONTENTS
 proc_contents  <- "(?=^proc contents)(.|\\n)*?(?<=run;)"
 # PROC PRINT
-proc_print     <- "(?=^proc print)(.|\\n)*?(?<=run;)"
+proc_print     <- "(?=(^proc print))(.|\\n)*?(?<=run;)"
 # PROC SORT
-proc_sort      <- "(?=^proc sort)(.|\\n)*?(?<=run;)"
+proc_sort      <- "(?=(^proc sort))(.|\\n)*?(?<=run;)"
 # PROC STANDARD
 proc_standard  <- "(?=^proc standard)(.|\\n)*?(?<=run;)"
 # PROC TRANSPOSE
@@ -46,6 +46,35 @@ proc_gplot     <- "(?=^proc gplot)(.|\\n)*?(?<=run;)"
 proc_chart     <- "(?=^proc chart)(.|\\n)*?(?<=run;)"
 # PROC GPLOT
 proc_gchart    <- "(?=^proc gchart)(.|\\n)*?(?<=run;)"
+# PROC SQL
+proc_sql       <- "(?=^proc sql)(.|\\n)*?(?<=quit;)"
 
 
+
+# Regroupement ------------------------------------------------------------
+
+cut_expressions <- paste(comment1,
+                         comment2,
+                         libname,
+                         data_run,
+                         proc_contents,
+                         proc_print,
+                         proc_sort,
+                         proc_standard,
+                         proc_transpose,
+                         proc_means,
+                         proc_corr,
+                         proc_univariate,
+                         proc_freq,
+                         proc_reg,
+                         proc_glm,
+                         proc_genmod,
+                         proc_plot,
+                         proc_gplot,
+                         proc_chart,
+                         proc_gchart,
+                         proc_sql, sep = "|")
+
+library(stringr)
+str_extract_all(code_sas, regex(pattern =  cut_expressions, multiline = TRUE))
 

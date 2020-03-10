@@ -8,5 +8,8 @@
 #' @export
 #'
 transcripteur <- function(input, output){
-
+  code_sas <- readLines(input) %>%
+    paste(., collapse = "\n")
 }
+
+input = "exemple_sas"
