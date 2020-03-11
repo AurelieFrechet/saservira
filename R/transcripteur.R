@@ -14,4 +14,4 @@ transcripteur <- function(input, output){
   code_decoupe <- decouper_SAS(code_sas)
 }
 
-input = "exemple_sas"
+# input = "exemple_sas"

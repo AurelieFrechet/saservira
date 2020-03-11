@@ -1,11 +1,20 @@
 sasr_data <- function(code_sas){
 
   # data lib.table;
-  data_table
+  data_table <- str_match_all(code_sas,
+                              regex(pattern   = "^data (\\w+\\.)?(\\w+) ?;",
+                                    multiline = TRUE))[[1]]
+
   # <set lib.table;>
-  set_table
+  set_table <- str_match_all(code_sas,
+                          regex(pattern   = "^set (\\w+\\.)?(\\w+) ?;",
+                                multiline = TRUE))[[1]]
+
   # var = contenu;
-  variables_brut
+  variables_brut <- str_match_all(code_sas,
+                                  regex(pattern   = "^(\\w+) ?= ?(\\w+) ?;",
+                                        multiline = TRUE))[[1]]
+
   # <length var format;>
   length_variables
   #<input var contenu;>
@@ -20,3 +29,8 @@ sasr_data <- function(code_sas){
 
 
 }
+values <- data.frame(nvar3 = 6, nver = 48) %>%
+  mutate(nvar3 = numeric(), nver = numeric()) %>%
+  add_row(nvar3 = 6, nver = 48)
+
+
