@@ -1,15 +1,14 @@
-sasr_sql <- function(code_sas) {
-  # Séparer les différentes requêtes ----
-  requetes <- code_sas %>%
-    str_replace(pattern = "proc sql;", replacement = "") %>%
-    str_replace(pattern = "quit;", replacement = "") %>%
-    str_split(pattern = ";") %>%
-    unlist() %>%
-    {
-      .[-which(str_detect(., "^\n$"))]
-    }
-
-  # Couper au niveau des mots clés ----
+#' lecture_sql
+#' @description lit une requete sql et renvoie une data.frame avec les mots clés (kw)
+#' et les valeurs associées (sentence)
+#' @param requete une seule requete sql
+#'
+#' @return une data.frame 2 col
+#' @export
+#'
+#' @examples
+lecture_sql <- function(requete){
+  # Definition des mots clés
   key_words <- c("select",
                  "from",
                  "where",
@@ -20,18 +19,41 @@ sasr_sql <- function(code_sas) {
     paste0("(?=", key_words, ")"),
     collapse = "|")
 
-  requetes_list <- lapply(
-    X = requetes,
-    FUN = function(x) {
-      str_split(string = x,
-                pattern = pattern_kw)[[1]] %>%
-        {
-          .[-which(str_detect(., "^\n"))]
-        } %>%
-        str_replace(pattern = "\n$", replacement = "") %>%
-        str_trim()
+  # Decoupe
+  sentence <- str_split(string = requete,
+                        pattern = pattern_kw)[[1]] %>%
+    {
+      .[-which(str_detect(., "^\n"))]
+    } %>%
+    str_remove(pattern = "\n$") %>%
+    str_trim()
+
+  # Identification
+  kw <- str_extract(string = sentence,
+                    pattern = paste(key_words, collapse = "|"))
+
+  # Nettoyage
+  sentence <- sentence %>%
+    str_remove(pattern = paste(key_words, collapse = "|")) %>%
+    str_trim()
+
+  return(data.frame(kw, sentence))
+}
+
+sasr_sql <- function(code_sas) {
+  # Séparer les différentes requêtes ----
+  requetes <- code_sas %>%
+    str_remove(pattern = "proc sql;") %>%
+    str_remove(pattern = "quit;") %>%
+    str_split(pattern = ";") %>%
+    unlist() %>%
+    {
+      .[-which(str_detect(., "^\n$"))]
     }
-  )
+
+  # Couper au niveau des mots clés ----
+
+  requetes_list <- lapply(requetes, lecture_sql)
 
   # SELECT
   sql_select <-
