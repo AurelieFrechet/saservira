@@ -72,6 +72,41 @@ sql_to_dplyr <- function(sentence){
                           sep ="")
   }
 
+  # Partie FROM ----
+  from_vector <-  sentence["from"] %>%
+    str_split(pattern = ",") %>%
+    unlist()
+
+  if (length(from_vector) > 1){
+    # TO DO les jointures impropres
+  } else {
+    dplyr_data <- from_vector
+  }
+
+
+  # Partie WHERE ---
+  dplyr_filter <- sentence["where"] %>%
+
+    # Remplacement =/le/ge/<>
+    str_replace_all(pattern = "=",  replacement = "==") %>%
+    str_replace_all(pattern = "ge", replacement = ">=") %>%
+    str_replace_all(pattern = "le", replacement = "<=") %>%
+    str_replace_all(pattern = "<>", replacement = "!=") %>%
+
+
+    # Remplacement IN
+    str_replace(pattern = "([a-zA-Z0-9.]+)\\in\\s([a-zA-Z0-9,()]+)",
+                replacement = "\\1 %in% c\\2") %>%
+
+    # Remplacement BETWEEN
+    str_replace(pattern = "([a-zA-Z0-9.]+)\\sbetween\\s(\\w+)\\sand\\s(\\w+)",
+                replacement = "between(\\1, \\2, \\3)") %>%
+
+    # Remplacement LIKES
+
+    # Remplacement and et or
+    str_replace_all(pattern = "and", replacement = "&") %>%
+    str_replace_all(pattern = "or",  replacement = "|")
 
 
 }
