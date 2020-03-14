@@ -37,9 +37,11 @@ decoupe_requete <- function(requete, key_words){
 
 # TODO : Créer un interpréteur de data.frame
 sql_to_dplyr <- function(sentence){
-  if(sentence["select"] == "*"){
 
-  }else{
+  # Partie SELECT ----
+  if (sentence["select"] == "*") {
+    dplyr_select <- NA
+  } else{
     select_matrix <- sentence["select"] %>%
       str_split(pattern = ",") %>%
       unlist() %>%
@@ -54,7 +56,24 @@ sql_to_dplyr <- function(sentence){
       mutate(select = ifelse(is.na(nom), colonne, nom),
              mutate = ifelse(is.na(nom), NA, paste(nom, colonne, sep = " = ")))
 
+    lignes_mutate <-  select_df %>%
+      filter(!is.na(mutate)) %>%
+      select(mutate)
+    if (nrow(lignes_mutate) > 0) {
+      dplyr_mutate <- paste("mutate(",
+                                  paste(lignes_mutate, collapse = ","), ")",
+                                  sep ="")
+    } else {
+      dplyr_mutate <- NA
     }
+
+    dplyr_select <- paste("select(",
+                          paste(select_df$select, collapse = ","), ")",
+                          sep ="")
+  }
+
+
+
 }
 
 sasr_sql <- function(code_sas) {
