@@ -7,14 +7,8 @@
 #' @export
 #'
 #' @examples
-lecture_sql <- function(requete){
+lecture_sql <- function(requete, key_words){
   # Definition des mots clés
-  key_words <- c("select",
-                 "from",
-                 "where",
-                 "order by",
-                 "group by",
-                 "limit")
   pattern_kw <- paste(
     paste0("(?=", key_words, ")"),
     collapse = "|")
@@ -39,6 +33,9 @@ lecture_sql <- function(requete){
 
   return(data.frame(kw, sentence))
 }
+lecture_sql("\nselect villeemp, sum(anneemp) as totannee from employe\nwhere titreemp=\"respven\"\ngroup by villeemp\norder by totannee")
+
+# TODO : Créer un interpréteur de data.frame
 
 sasr_sql <- function(code_sas) {
   # Séparer les différentes requêtes ----
@@ -53,7 +50,12 @@ sasr_sql <- function(code_sas) {
 
   # Couper au niveau des mots clés ----
 
-  requetes_list <- lapply(requetes, lecture_sql)
+  requetes_list <- lapply(requetes, lecture_sql,   key_words = c("select",
+                                                                  "from",
+                                                                  "where",
+                                                                  "order by",
+                                                                  "group by",
+                                                                  "limit"))
 
   # SELECT
   sql_select <-
