@@ -7,7 +7,7 @@
 #' @export
 #'
 #' @examples
-lecture_sql <- function(requete, key_words){
+decoupe_requete <- function(requete, key_words){
   # Definition des mots clés
   pattern_kw <- paste(
     paste0("(?=", key_words, ")"),
@@ -31,11 +31,31 @@ lecture_sql <- function(requete, key_words){
     str_remove(pattern = paste(key_words, collapse = "|")) %>%
     str_trim()
 
-  return(data.frame(kw, sentence))
+  names(sentence) <-kw
+  return(sentence)
 }
-lecture_sql("\nselect villeemp, sum(anneemp) as totannee from employe\nwhere titreemp=\"respven\"\ngroup by villeemp\norder by totannee")
 
 # TODO : Créer un interpréteur de data.frame
+sql_to_dplyr <- function(sentence){
+  if(sentence["select"] == "*"){
+
+  }else{
+    select_matrix <- sentence["select"] %>%
+      str_split(pattern = ",") %>%
+      unlist() %>%
+      str_trim() %>%
+      str_match_all(pattern = "([a-zA-Z0-9.()]+)(\\sas\\s)?([a-zA-Z0-9]+)?") %>%
+      do.call(rbind, .)
+
+    select_df <-
+      data.frame(colonne = select_matrix[, 2],
+                 nom     = select_matrix[, 4],
+                 stringsAsFactors = FALSE) %>%
+      mutate(select = ifelse(is.na(nom), colonne, nom),
+             mutate = ifelse(is.na(nom), NA, paste(nom, colonne, sep = " = ")))
+
+    }
+}
 
 sasr_sql <- function(code_sas) {
   # Séparer les différentes requêtes ----
@@ -50,7 +70,7 @@ sasr_sql <- function(code_sas) {
 
   # Couper au niveau des mots clés ----
 
-  requetes_list <- lapply(requetes, lecture_sql,   key_words = c("select",
+  requetes_list <- lapply(requetes, decoupe_requete,   key_words = c("select",
                                                                   "from",
                                                                   "where",
                                                                   "order by",
