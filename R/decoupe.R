@@ -70,3 +70,40 @@ decouper_SAS <- function(code_sas) {
            match_c2[, 2])
   ))
 }
+
+#' decoupe_requete
+#' @description lit une requete sql et renvoie une data.frame avec les mots clés (kw)
+#' et les valeurs associées (sentence)
+#' @param requete une seule requete sql
+#' @param key_words : mots clés de découpe (select, from, etc)
+#'
+#' @return vecteur nommé des blocs, le nom associé correspond aux mots clés
+#' @export
+#'
+#' @examples
+decoupe_requete <- function(requete, key_words){
+  # Definition des mots clés
+  pattern_kw <- paste(paste0("(?=", key_words, ")"),
+                      collapse = "|")
+
+  # Decoupe
+  sentence <- str_split(string = requete,
+                        pattern = pattern_kw)[[1]] %>%
+    {
+      .[-which(str_detect(., "^\n"))]
+    } %>%
+    str_remove(pattern = "\n$") %>%
+    str_trim()
+
+  # Identification
+  kw <- str_extract(string = sentence,
+                    pattern = paste(key_words, collapse = "|"))
+
+  # Nettoyage
+  sentence <- sentence %>%
+    str_remove(pattern = paste(key_words, collapse = "|")) %>%
+    str_trim()
+
+  names(sentence) <- kw
+  return(sentence)
+}
