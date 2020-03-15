@@ -1,9 +1,10 @@
-#' lecture_sql
+#' decoupe_requete
 #' @description lit une requete sql et renvoie une data.frame avec les mots clés (kw)
 #' et les valeurs associées (sentence)
 #' @param requete une seule requete sql
+#' @param key_words : mots clés de découpe (select, from, etc)
 #'
-#' @return une data.frame 2 col
+#' @return vecteur nommé des blocs, le nom associé correspond aux mots clés
 #' @export
 #'
 #' @examples
@@ -35,13 +36,15 @@ decoupe_requete <- function(requete, key_words){
   return(sentence)
 }
 
-# TODO : Créer un interpréteur de data.frame
-sql_to_dplyr <- function(sentence){
+sql_to_dplyr <- function(sentence) {
+  # Initialisation
+  dplyr_mutate <- NA
+  dplyr_select <- NA
+  dplyr_data   <- NA
+  dplyr_filter <- NA
 
   # Partie SELECT ----
-  if (sentence["select"] == "*") {
-    dplyr_select <- NA
-  } else{
+  if (sentence["select"] != "*") {
     select_matrix <- sentence["select"] %>%
       str_split(pattern = ",") %>%
       unlist() %>%
@@ -61,15 +64,14 @@ sql_to_dplyr <- function(sentence){
       select(mutate)
     if (nrow(lignes_mutate) > 0) {
       dplyr_mutate <- paste("mutate(",
-                                  paste(lignes_mutate, collapse = ","), ")",
-                                  sep ="")
-    } else {
-      dplyr_mutate <- NA
+                            paste(lignes_mutate, collapse = ","), ")",
+                            sep = "")
     }
 
     dplyr_select <- paste("select(",
-                          paste(select_df$select, collapse = ","), ")",
-                          sep ="")
+                          paste(select_df$select, collapse = ","),
+                          ")",
+                          sep = "")
   }
 
   # Partie FROM ----
@@ -77,37 +79,65 @@ sql_to_dplyr <- function(sentence){
     str_split(pattern = ",") %>%
     unlist()
 
-  if (length(from_vector) > 1){
-    # TO DO les jointures impropres
+  if (length(from_vector) > 1) {
+    # TODO les jointures impropres
   } else {
     dplyr_data <- from_vector
   }
 
 
-  # Partie WHERE ---
-  dplyr_filter <- sentence["where"] %>%
+  # Partie WHERE ----
+  if (!is.na(sentence["where"])) {
+    dplyr_filter <- sentence["where"] %>%
 
-    # Remplacement =/le/ge/<>
-    str_replace_all(pattern = "=",  replacement = "==") %>%
-    str_replace_all(pattern = "ge", replacement = ">=") %>%
-    str_replace_all(pattern = "le", replacement = "<=") %>%
-    str_replace_all(pattern = "<>", replacement = "!=") %>%
+      # Gestion NULL et .
+      str_replace(pattern = "([a-zA-Z0-9.]+)\\s?=\\s?\\.",
+                  replacement = "is.na(\\1)") %>%
+      str_replace(pattern = "([a-zA-Z0-9.]+)\\s?<>\\s?\\.",
+                  replacement = "!is.na(\\1)") %>%
+      str_replace(pattern = "([a-zA-Z0-9.]+)\\sis\\snull",
+                  replacement = "is.na(\\1)") %>%
+      str_replace(pattern = "([a-zA-Z0-9.]+)\\sis\\s\\not\\snull",
+                  replacement = "!is.na(\\1)") %>%
+
+      # Remplacement =/le/ge/<>
+      str_replace_all(pattern = "=",  replacement = "==") %>%
+      str_replace_all(pattern = "ge", replacement = ">=") %>%
+      str_replace_all(pattern = "le", replacement = "<=") %>%
+      str_replace_all(pattern = "<>", replacement = "!=") %>%
 
 
-    # Remplacement IN
-    str_replace(pattern = "([a-zA-Z0-9.]+)\\in\\s([a-zA-Z0-9,()]+)",
-                replacement = "\\1 %in% c\\2") %>%
+      # Remplacement IN
+      str_replace(pattern = "([a-zA-Z0-9.]+)\\sin\\s([a-zA-Z0-9,()]+)",
+                  replacement = "\\1 %in% c\\2") %>%
 
-    # Remplacement BETWEEN
-    str_replace(pattern = "([a-zA-Z0-9.]+)\\sbetween\\s(\\w+)\\sand\\s(\\w+)",
-                replacement = "between(\\1, \\2, \\3)") %>%
+      # Remplacement BETWEEN
+      str_replace(pattern = "([a-zA-Z0-9.]+)\\sbetween\\s(\\w+)\\sand\\s(\\w+)",
+                  replacement = "between(\\1, \\2, \\3)") %>%
 
-    # Remplacement LIKES
+      # Remplacement LIKES
+      # TODO
 
-    # Remplacement and et or
-    str_replace_all(pattern = "and", replacement = "&") %>%
-    str_replace_all(pattern = "or",  replacement = "|")
+      # Remplacement and et or
+      str_replace_all(pattern = "and",  replacement = "&") %>%
+      str_replace_all(pattern = "or",   replacement = "|") %>%
+      str_replace_all(pattern = "not",  replacement = "!") %>%
 
+      # Mise en fonction
+      paste0("filter(", ., ")")
+  }
+
+  # Return
+  requete_dplyr <- c(dplyr_data,
+                     dplyr_mutate,
+                     dplyr_select,
+                     dplyr_filter) %>%
+    {
+      .[!is.na(.)]
+    } %>%
+    paste(., collapse = " %>% ")
+
+  return(requete_dplyr)
 
 }
 
@@ -130,6 +160,8 @@ sasr_sql <- function(code_sas) {
                                                                   "order by",
                                                                   "group by",
                                                                   "limit"))
+
+  requetes_dplyr <- lapply(requetes_list, sql_to_dplyr)
 
   # SELECT
   sql_select <-
