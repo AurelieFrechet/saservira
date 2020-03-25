@@ -29,8 +29,5 @@ sasr_data <- function(code_sas){
 
 
 }
-values <- data.frame(nvar3 = 6, nver = 48) %>%
-  mutate(nvar3 = numeric(), nver = numeric()) %>%
-  add_row(nvar3 = 6, nver = 48)
 
 

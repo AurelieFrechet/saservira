@@ -13,6 +13,4 @@ transcripteur <- function(input, output){
 
   code_decoupe <- decouper_SAS(code_sas)
 }
-library(dplyr)
-library(stringr)
-input = "exemple_sas"
+
