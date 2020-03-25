@@ -1,5 +1,22 @@
-sql_to_dplyr <- function(sentence) {
+#' sql_to_dplyr
+#' @include decoupe.R
+#' @import dplyr
+#' @import stringr
+#' @param code_sql : chaine de charactère code SQL
+#'
+#' @return
+#' @export
+#'
+#' @examples
+sql_to_dplyr <- function(code_sql) {
   # Initialisation
+  sentence <- decoupe_requete(code_sql,
+                              key_words = c("select",
+                                            "from",
+                                            "where",
+                                            "order by",
+                                            "group by",
+                                            "limit"))
   dplyr_mutate <- NA
   dplyr_select <- NA
   dplyr_data   <- NA
@@ -63,10 +80,10 @@ sql_to_dplyr <- function(sentence) {
                   replacement = "!is.na(\\1)") %>%
 
       # Remplacement =/le/ge/<>
-      str_replace_all(pattern = "=",  replacement = "==") %>%
-      str_replace_all(pattern = "ge", replacement = ">=") %>%
-      str_replace_all(pattern = "le", replacement = "<=") %>%
-      str_replace_all(pattern = "<>", replacement = "!=") %>%
+      str_replace_all(pattern = "\\s?=\\s?",  replacement = " == ") %>%
+      str_replace_all(pattern = "\\sge\\s",   replacement = " >= ") %>%
+      str_replace_all(pattern = "\\sle\\s",   replacement = " <= ") %>%
+      str_replace_all(pattern = "\\s?<>\\s?", replacement = " != ") %>%
 
 
       # Remplacement IN
@@ -81,19 +98,27 @@ sql_to_dplyr <- function(sentence) {
       # TODO
 
       # Remplacement and et or
-      str_replace_all(pattern = "and",  replacement = "&") %>%
-      str_replace_all(pattern = "or",   replacement = "|") %>%
-      str_replace_all(pattern = "not",  replacement = "!") %>%
+      str_replace_all(pattern = "\\s?and\\s?",  replacement = " & ") %>%
+      str_replace_all(pattern = "\\s?or\\s?",   replacement = " | ") %>%
+      str_replace_all(pattern = "\\s?not\\s?",  replacement = " !") %>%
 
       # Mise en fonction
       paste0("filter(", ., ")")
   }
 
+  # TODO : Partie Order by ----
+  dplyr_arrange <- sentence["order by"]
+
+  # TODO : Partie Groupe by ----
+  dplyr_groupby <- sentence["order by"]
+
   # Return
   requete_dplyr <- c(dplyr_data,
                      dplyr_mutate,
                      dplyr_select,
-                     dplyr_filter) %>%
+                     dplyr_filter,
+                     dplyr_arrange,
+                     dplyr_groupby) %>%
     {
       .[!is.na(.)]
     } %>%
@@ -103,6 +128,14 @@ sql_to_dplyr <- function(sentence) {
 
 }
 
+#' sasr_sql
+#' @include decoupe.R
+#' @param code_sas
+#'
+#' @return
+#' @export
+#'
+#' @examples
 sasr_sql <- function(code_sas) {
   # Séparer les différentes requêtes ----
   requetes <- code_sas %>%
@@ -114,65 +147,9 @@ sasr_sql <- function(code_sas) {
       .[-which(str_detect(., "^\n$"))]
     }
 
-  # Couper au niveau des mots clés ----
+  # Mise en fonction dplyr pour chaque requete
+  requetes_dplyr <- lapply(requetes, sql_to_dplyr)
 
-  requetes_list <- lapply(requetes, decoupe_requete,   key_words = c("select",
-                                                                  "from",
-                                                                  "where",
-                                                                  "order by",
-                                                                  "group by",
-                                                                  "limit"))
+  return(requetes_dplyr)
 
-  requetes_dplyr <- lapply(requetes_list, sql_to_dplyr)
-
-  # SELECT
-  sql_select <-
-    str_extract_all(
-      code_sas,
-      regex(pattern   = paste(
-        "select [a-zA-Z0-9.()]+(\\sas [a-zA-Z0-9]+)?(\\s?,\\s?[a-zA-Z0-9.()]+(\\sas [a-zA-Z0-9]+)?)*",
-        "select \\*", sep ="|"),
-            multiline = TRUE))[[1]] %>%
-    str_replace(pattern = "select ", replacement = "") %>%
-    str_split(pattern = "\\s?,\\s?")
-
-  # FROM
-  sql_from <-
-    str_extract_all(
-      code_sas,
-      regex(pattern   = "from [a-zA-Z0-9.]+(\\s?,\\s?[a-zA-Z0-9.]+)*",
-            multiline = TRUE))[[1]] %>%
-    str_replace(pattern = "from ", replacement = "") %>%
-    str_split(pattern = "\\s?,\\s?")
-
-  # WHERE
-  sql_where <-
-    str_extract_all(
-      code_sas,
-      regex(pattern   = "(?=where)[\\s\\S]*?(?=(;|order by|group by))",
-            multiline = TRUE))[[1]] %>%
-    str_replace(pattern = "where ", replacement = "") %>%
-    as.list()
-
-  # GROUP BY
-  sql_group_by <-
-    str_extract_all(
-      code_sas,
-      regex(pattern   = "group by [a-zA-Z0-9.]+(\\s?,\\s?[a-zA-Z0-9.]+)*",
-            multiline = TRUE))[[1]] %>%
-    str_replace(pattern = "group by ", replacement = "")  %>%
-    str_split(pattern = "\\s?,\\s?")
-
-  # ORDER BY
-  sql_order_by <-
-    str_extract_all(
-      code_sas,
-      regex(pattern   = "order by [a-zA-Z0-9.]+(\\sdesc|\\sasc)?(\\s?,\\s?[a-zA-Z0-9.]+(\\sdesc|\\sasc)?)*",
-            multiline = TRUE))[[1]] %>%
-    str_replace(pattern = "order by ", replacement = "") %>%
-    str_split(pattern = "\\s?,\\s?")
-
-
-  "[a-zA-Z0-9.\\s]+\s?(=|<|>|<>|<=|>=)\s?[a-zA-Z0-9.\"']+|[a-zA-Z0-9.\\s]+\s(is not|is)\snull|[a-zA-Z0-9.\\s]+\sbetween \w+ and \w+"
-
-  }
+}
