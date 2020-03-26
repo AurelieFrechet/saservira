@@ -72,6 +72,8 @@ decouper_SAS <- function(code_sas) {
 }
 
 #' decoupe_requete
+#' @import dplyr
+#' @import stringr
 #' @description lit une requete sql et renvoie une data.frame avec les mots clés (kw)
 #' et les valeurs associées (sentence)
 #' @param requete une seule requete sql
