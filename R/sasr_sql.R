@@ -107,10 +107,18 @@ sql_to_dplyr <- function(code_sql) {
   }
 
   # TODO : Partie Order by ----
-  dplyr_arrange <- sentence["order by"]
+  if (!is.na(sentence["order by"])) {
+    dplyr_arrange <- sentence["order by"] %>%
+      paste0("arrange(", . ,")")
+  }
+
 
   # TODO : Partie Groupe by ----
-  dplyr_groupby <- sentence["order by"]
+  if (!is.na(sentence["group by"])) {
+    dplyr_groupby <- sentence["group by"]%>%
+      paste0("group_by(", . ,")")
+  }
+
 
   # Return
   requete_dplyr <- c(dplyr_data,
@@ -122,7 +130,7 @@ sql_to_dplyr <- function(code_sql) {
     {
       .[!is.na(.)]
     } %>%
-    paste(., collapse = " %>% ")
+    paste(., collapse = " %>%\n\t")
 
   return(requete_dplyr)
 
