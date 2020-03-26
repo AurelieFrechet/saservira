@@ -17,10 +17,13 @@ sql_to_dplyr <- function(code_sql) {
                                             "order by",
                                             "group by",
                                             "limit"))
-  dplyr_mutate <- NA
-  dplyr_select <- NA
-  dplyr_data   <- NA
-  dplyr_filter <- NA
+  dplyr_mutate  <- NA
+  dplyr_select  <- NA
+  dplyr_data    <- NA
+  dplyr_filter  <- NA
+  dplyr_arrange <- NA
+  dplyr_groupby <- NA
+
 
   # Partie SELECT ----
   if (sentence["select"] != "*") {
@@ -156,7 +159,9 @@ sasr_sql <- function(code_sas) {
     }
 
   # Mise en fonction dplyr pour chaque requete
-  requetes_dplyr <- lapply(requetes, sql_to_dplyr)
+  requetes_dplyr <- lapply(requetes, sql_to_dplyr) %>%
+    unlist() %>%
+    paste(., collapse = "\n")
 
   return(requetes_dplyr)
 
