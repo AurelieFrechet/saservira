@@ -1,6 +1,7 @@
 #' Decoupe code SAS
 #'
 #' @import stringr
+#' @import stringi
 #' @import dplyr
 #'
 #' @description identifie les blocs de procédures/commentaires/étapes data/etc,
@@ -72,8 +73,9 @@ decouper_SAS <- function(code_sas) {
 }
 
 #' decoupe_requete
-#' @import dplyr
 #' @import stringr
+#' @import stringi
+#' @import dplyr
 #' @description lit une requete sql et renvoie une data.frame avec les mots clés (kw)
 #' et les valeurs associées (sentence)
 #' @param requete une seule requete sql

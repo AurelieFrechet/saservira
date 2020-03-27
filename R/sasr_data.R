@@ -1,4 +1,14 @@
 sasr_data <- function(code_sas){
+  # Déclaration des variables
+  data_table        <- NA
+  set_table         <- NA
+  variables_brut    <- NA
+  length_variables  <- NA
+  input_variabless  <- NA
+  datalines         <- NA
+  keep_variables    <- NA
+  drop_variables    <- NA
+  where             <- NA
 
   # data lib.table;
   data_table <- str_match_all(code_sas,

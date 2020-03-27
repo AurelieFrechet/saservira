@@ -1,3 +1,5 @@
+globalVariables(c("."))
+
 reecriture <- function(id, code) {
   switch(id,
          "proc sql" = {

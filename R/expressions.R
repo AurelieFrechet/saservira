@@ -75,6 +75,4 @@ cut_expressions <- paste(comment1,
                          proc_gchart,
                          proc_sql, sep = "|")
 
-library(stringr)
-str_extract_all(code_sas, regex(pattern =  cut_expressions, multiline = TRUE))
 

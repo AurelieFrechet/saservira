@@ -9,6 +9,15 @@
 #'
 #' @examples
 sql_to_dplyr <- function(code_sql) {
+  # Déclaration des variables
+  nom <- colonne <- NULL
+  dplyr_mutate  <- NA
+  dplyr_select  <- NA
+  dplyr_data    <- NA
+  dplyr_filter  <- NA
+  dplyr_arrange <- NA
+  dplyr_groupby <- NA
+
   # Initialisation
   sentence <- decoupe_requete(code_sql,
                               key_words = c("select",
@@ -17,12 +26,7 @@ sql_to_dplyr <- function(code_sql) {
                                             "order by",
                                             "group by",
                                             "limit"))
-  dplyr_mutate  <- NA
-  dplyr_select  <- NA
-  dplyr_data    <- NA
-  dplyr_filter  <- NA
-  dplyr_arrange <- NA
-  dplyr_groupby <- NA
+
 
 
   # Partie SELECT ----
@@ -141,9 +145,9 @@ sql_to_dplyr <- function(code_sql) {
 
 #' sasr_sql
 #' @include decoupe.R
-#' @param code_sas
+#' @param code_sas code SAS balisé de proc sql; quit;
 #'
-#' @return
+#' @return la même requeteen R library dplyr
 #' @export
 #'
 #' @examples
