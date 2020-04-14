@@ -158,8 +158,10 @@ sasr_sql <- function(code_sas) {
     str_remove(pattern = "quit;") %>%
     str_split(pattern = ";") %>%
     unlist() %>%
+    str_replace_all(pattern = "\n", " ") %>%
+    str_trim() %>%
     {
-      .[-which(str_detect(., "^\n$"))]
+      .[-which(. == "")]
     }
 
   # Mise en fonction dplyr pour chaque requete

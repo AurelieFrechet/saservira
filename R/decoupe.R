@@ -21,12 +21,12 @@ decouper_SAS <- function(code_sas) {
   # PROCEDURES : proc mot [...] run;/quit;
   locate_proc <- str_locate_all(
     code_sas,
-    regex(pattern =   "(?=(^proc \\w+))[\\s\\S]*?(?<=(run;|quit;))",
+    regex(pattern =   "(?=(proc \\w+))[\\s\\S]*?(?<=(run;|quit;))",
           multiline = TRUE)
   )[[1]]
   match_proc  <- str_match_all(
     code_sas,
-    regex(pattern =  "(?=(^proc \\w+))[\\s\\S]*?(?<=(run;|quit;))",
+    regex(pattern =  "(?=(proc \\w+))[\\s\\S]*?(?<=(run;|quit;))",
           multiline = TRUE)
   )[[1]]
 
@@ -94,9 +94,8 @@ decoupe_requete <- function(requete, key_words){
   sentence <- str_split(string = requete,
                         pattern = pattern_kw)[[1]] %>%
     {
-      .[-which(str_detect(., "^\n"))]
+      .[-which(. == "")]
     } %>%
-    str_remove(pattern = "\n$") %>%
     str_trim()
 
   # Identification

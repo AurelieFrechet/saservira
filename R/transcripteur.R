@@ -19,8 +19,12 @@ reecriture <- function(id, code) {
 #' @export
 #'
 transcripteur <- function(input, output) {
-  code_sas <- readLines(input, encoding = "UTF-8") %>%
-    paste(., collapse = "\n")
+  code_sas <- readLines(input, encoding = "UTF-8", warn=FALSE) %>%
+    paste(., collapse = "\n") %>%
+    tolower() %>%
+    str_replace_all(pattern = "run\\s?;" , replacement = "run;")%>%
+    str_replace_all(pattern = "quit\\s?;", replacement = "quit;")
+
 
   code_decoupe <- decouper_SAS(code_sas)
 
