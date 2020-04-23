@@ -17,3 +17,5 @@ Collate:
     'sasr_replace_mv.R'
     'sasr_sql.R'
     'transcripteur.R'
+Suggests: 
+    testthat (>= 2.1.0)
