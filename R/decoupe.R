@@ -107,6 +107,12 @@ decoupe_requete <- function(requete, key_words){
     str_remove(pattern = paste(key_words, collapse = "|")) %>%
     str_trim()
 
+  # Messages d'erreur
+  if(length(sentence) == 0){
+    message("Requete does not contain key words")
+    return(NULL)
+  }
+
   names(sentence) <- kw
   return(sentence)
 }
