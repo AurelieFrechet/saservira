@@ -4,7 +4,7 @@
 #' @import stringr
 #' @param code_sql : chaine de charactère code SQL
 #'
-#' @return
+#' @return chaine de charactere
 #' @export
 #'
 #' @examples

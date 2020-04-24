@@ -40,10 +40,10 @@ decouper_SAS <- function(code_sas) {
 
   # COMMENTAIRES 1 LIGNE
   locate_c1   <- str_locate_all(code_sas,
-                                regex(pattern   = "(?=(^\\*)).*?(?<=\\n)",
+                                regex(pattern   = "(?=(^(\\s)*?\\*)).*?(?=\\n)",
                                       multiline = TRUE))[[1]]
   match_c1  <- str_match_all(code_sas,
-                             regex(pattern   = "(?=(^\\*)).*?(?<=\\n)",
+                             regex(pattern   = "(?=(^(\\s)*?\\*)).*?(?=\\n)",
                                    multiline = TRUE))[[1]]
 
   # COMMENTAIRES MULTIGNES
@@ -65,10 +65,10 @@ decouper_SAS <- function(code_sas) {
               match_data[, 1],
               match_c1[, 1],
               match_c2[, 1]),
-    id = c(match_proc[, 2],
+    id = str_trim(c(match_proc[, 2],
            match_data[, 2],
            match_c1[, 2],
-           match_c2[, 2])
+           match_c2[, 2]))
   ))
 }
 
