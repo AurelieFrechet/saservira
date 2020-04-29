@@ -1,3 +1,55 @@
+sql_dplyr_select <- function(select_clause) {
+  code <-
+    select_clause %>%
+    str_split(pattern = ",") %>%
+    unlist() %>%
+    str_trim()
+
+  nom_var <-
+    str_extract(code,
+                pattern = "(?<=as\\s).*")
+
+  select_code <- nom_var %>%
+    ifelse(is.na(.), code, .) %>%
+    paste0("\"", ., "\"") %>%
+    paste(., collapse = ", ") %>%
+    paste0("select(", ., ")")
+
+  fonction <- str_detect(code, "\\(")
+
+  contenu <-
+    str_extract(code,
+                pattern = ".*(?=\\sas)")
+
+  affectation <-
+    ifelse(is.na(nom_var), NA,
+           paste(nom_var, contenu, sep = " = ")) %>%
+    {
+      .[!is.na(.)]
+    } %>%
+    paste(., collapse = ", ")
+
+  if (all(fonction)) {
+    # Que des fonctions
+    return_code <- affectation %>%
+      paste0("summarize(", ., ")")
+
+  } else {
+    if (all(is.na(contenu))) {
+      # Pas d'affection de variable
+      return_code <- select_code
+
+    } else{
+      # Creation de variable
+      return_code <- affectation %>%
+        paste0("mutate(", ., ") %>%\n\t", select_code)
+    }
+  }
+
+  return(return_code)
+}
+
+
 #' sql_to_dplyr
 #' @include decoupe.R
 #' @import dplyr
@@ -31,33 +83,7 @@ sql_to_dplyr <- function(code_sql) {
 
   # Partie SELECT ----
   if (sentence["select"] != "*") {
-    select_matrix <- sentence["select"] %>%
-      str_split(pattern = ",") %>%
-      unlist() %>%
-      str_trim() %>%
-      str_match_all(pattern = "([a-zA-Z0-9.()]+)(\\sas\\s)?([a-zA-Z0-9]+)?") %>%
-      do.call(rbind, .)
-
-    select_df <-
-      data.frame(colonne = select_matrix[, 2],
-                 nom     = select_matrix[, 4],
-                 stringsAsFactors = FALSE) %>%
-      mutate(select = ifelse(is.na(nom), colonne, nom),
-             mutate = ifelse(is.na(nom), NA, paste(nom, colonne, sep = " = ")))
-
-    lignes_mutate <-  select_df %>%
-      filter(!is.na(mutate)) %>%
-      select(mutate)
-    if (nrow(lignes_mutate) > 0) {
-      dplyr_mutate <- paste("mutate(",
-                            paste(lignes_mutate, collapse = ","), ")",
-                            sep = "")
-    }
-
-    dplyr_select <- paste("select(",
-                          paste(select_df$select, collapse = ","),
-                          ")",
-                          sep = "")
+    dplyr_select <- sql_dplyr_select(sentence["select"])
   }
 
   # Partie FROM ----
