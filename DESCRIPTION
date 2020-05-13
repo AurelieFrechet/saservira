@@ -13,6 +13,7 @@ RoxygenNote: 7.0.2
 Collate: 
     'decoupe.R'
     'expressions.R'
+    'sasr_contents.R'
     'sasr_data.R'
     'sasr_replace_mv.R'
     'sasr_sql.R'

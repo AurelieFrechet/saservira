@@ -2,9 +2,10 @@
 
 export(decoupe_requete)
 export(decouper_SAS)
+export(sasr_contents)
 export(sasr_sql)
 export(sql_to_dplyr)
-export(transcripteur)
+export(traducteur)
 import(dplyr)
 import(stringi)
 import(stringr)

@@ -49,6 +49,8 @@ sql_dplyr_select <- function(select_clause) {
   return(return_code)
 }
 
+
+#' @export
 sql_dplyr_where  <- function(where_clause){
   where_clause %>%
 
@@ -143,7 +145,7 @@ sql_to_dplyr <- function(code_sql) {
 
   # Partie WHERE ----
   if (!is.na(sentence["where"])) {
-
+    dplyr_filter <- sql_dplyr_where(sentence["where"])
   }
 
   # TODO : Partie Order by ----

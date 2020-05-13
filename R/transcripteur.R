@@ -4,6 +4,9 @@ reecriture <- function(id, code) {
   switch(id,
          "proc sql" = {
            sasr_sql(code)
+         },
+         "proc contents" = {
+           sasr_contents(code)
          })
 }
 
@@ -11,16 +14,17 @@ reecriture <- function(id, code) {
 #' Transcripteur
 #'
 #' @import dplyr
-#' @description transcrit du code SAS en R
+#' @description traduit du code SAS en R
 #'
 #' @param input fichier SAS
 #' @param output fichier R
 #'
 #' @export
 #'
-transcripteur <- function(input, output) {
-  code_sas <- readLines(input, encoding = "UTF-8", warn=FALSE) %>%
-    paste(., collapse = "\n") %>%
+traducteur <- function(code_sas) {
+  # code_sas <- readLines(input, encoding = "UTF-8", warn=FALSE) %>%
+  #   paste(., collapse = "\n") %>%
+  code_sas <-  code_sas %>%
     tolower() %>%
     str_replace_all(pattern = "run\\s?;" , replacement = "run;")%>%
     str_replace_all(pattern = "quit\\s?;", replacement = "quit;")
@@ -28,11 +32,18 @@ transcripteur <- function(input, output) {
 
   code_decoupe <- decouper_SAS(code_sas)
 
-  traduction <- lapply(
+  code_decoupe$traduction <- lapply(
     X = 1:length(code_decoupe$id),
     FUN = function(i) {
       reecriture(id   = code_decoupe$id[i],
                  code = code_decoupe$texte[i])
     }
-  )
+  ) %>% unlist()
+
+
+  stri_sub_all(str = code_sas, code_decoupe$place) <- code_decoupe$traduction
+
+  return(code_sas)
+
 }
+

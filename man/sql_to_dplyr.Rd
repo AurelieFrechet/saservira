@@ -10,7 +10,7 @@ sql_to_dplyr(code_sql)
 \item{code_sql}{: chaine de charactère code SQL}
 }
 \value{
-
+chaine de charactere
 }
 \description{
 sql_to_dplyr
