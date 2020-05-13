@@ -26,24 +26,27 @@ traducteur <- function(code_sas) {
   #   paste(., collapse = "\n") %>%
   code_sas <-  code_sas %>%
     tolower() %>%
-    str_replace_all(pattern = "run\\s?;" , replacement = "run;")%>%
+    str_replace_all(pattern = "run\\s?;" , replacement = "run;") %>%
     str_replace_all(pattern = "quit\\s?;", replacement = "quit;")
 
 
   code_decoupe <- decouper_SAS(code_sas)
 
-  code_decoupe$traduction <- lapply(
-    X = 1:length(code_decoupe$id),
-    FUN = function(i) {
-      reecriture(id   = code_decoupe$id[i],
-                 code = code_decoupe$texte[i])
-    }
-  ) %>% unlist()
+  if (length(code_decoupe$id) > 0) {
+    code_decoupe$traduction <- lapply(
+      X = 1:length(code_decoupe$id),
+      FUN = function(i) {
+        reecriture(id   = code_decoupe$id[i],
+                   code = code_decoupe$texte[i])
+      }
+    ) %>% unlist()
 
 
-  stri_sub_all(str = code_sas, code_decoupe$place) <- code_decoupe$traduction
+    stri_sub_all(str = code_sas, code_decoupe$place) <-
+      code_decoupe$traduction
+  }
+
 
   return(code_sas)
 
 }
-

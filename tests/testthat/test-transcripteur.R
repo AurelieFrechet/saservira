@@ -6,3 +6,16 @@ test_that("test sur iris", {
   expect_equal(traducteur(code_sas), "str(iris)\n  iris %>%\n\tfilter(species == \"setosa\")")
 
 })
+
+
+test_that("vide", {
+  code_sas <- ""
+  expect_equal(traducteur(code_sas), "")
+
+})
+
+test_that("code non reconnu", {
+  code_sas <- "code non reconnu"
+  expect_equal(traducteur(code_sas), "code non reconnu")
+
+})
