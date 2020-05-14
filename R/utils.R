@@ -5,13 +5,15 @@ data_equal_to <- function(code_sas){
 
 transform_casewhen <- function(chaine){
   chaine <- chaine %>%
-    str_remove_all(pattern = "case") %>%
-    str_remove_all(pattern = "end") %>%
+    str_remove_all(pattern = regex("case", ignore_case = T)) %>%
+    str_remove_all(pattern = regex("end", ignore_case = T)) %>%
     str_remove_all(pattern = "\n")
 
   when_then <-
-    str_match_all(string = chaine,
-                  pattern = "when\\s+([\\S]+)\\s+then\\s+([\\S]+)")[[1]]
+    str_match_all(
+      string = chaine,
+      pattern = regex("when\\s+([\\S]+)\\s+then\\s+([\\S]+)", ignore_case = T)
+    )[[1]]
 
   requete <-
     paste(when_then[, 2], when_then[, 3], sep = " ~ ") %>%
@@ -19,15 +21,15 @@ transform_casewhen <- function(chaine){
 
   else_then <-
     str_match_all(string = chaine,
-                  pattern = "else\\s+([\\S]+)")[[1]]
+                  pattern = regex("else\\s+([\\S]+)", ignore_case = T))[[1]]
 
   if (length(else_then) == 1) {
     requete <- paste0(requete,
-                     ",\nTRUE ~ "?
-                       else_then[,2])
+                      ",\nTRUE ~ " ?
+                        else_then[, 2])
   }
 
-  requete <- paste0("case_when(", requete,")")
+  requete <- paste0("case_when(", requete, ")")
 
   return(requete)
 
@@ -39,17 +41,17 @@ transform_casewhen <- function(chaine){
 #' @param chaine chaine de charactères contenant la fonction
 transform_functions <- function(chaine){
   chaine_casewhen <- str_extract_all(chaine = chaine,
-                                     pattern = "case ([\\s\\S]+) end")
+                                     pattern = regex("case ([\\s\\S]+) end", ignore_case = T))
   chaine %>%
 
     # Fonctions de base
-    str_replace_all(pattern = "false",          replacement = "FALSE")%>%
-    str_replace_all(pattern = "true",           replacement = "TRUE") %>%
-    str_replace_all(pattern = "avg",            replacement = "mean") %>%
-    str_replace_all(pattern = "var_samp",       replacement = "var")  %>%
-    str_replace_all(pattern = "stddev_samp",    replacement = "sd")   %>%
-    str_replace_all(pattern = "count\\(\\*\\)", replacement = "n()")  %>%
-    str_replace_all(pattern = "count\\(distinct\\(([a-zA-z0-9_]+)\\)\\)",
+    str_replace_all(pattern = regex("false", ignore_case = T),          replacement = "FALSE")%>%
+    str_replace_all(pattern = regex("true", ignore_case = T),           replacement = "TRUE") %>%
+    str_replace_all(pattern = regex("avg", ignore_case = T),            replacement = "mean") %>%
+    str_replace_all(pattern = regex("var_samp", ignore_case = T),       replacement = "var")  %>%
+    str_replace_all(pattern = regex("stddev_samp", ignore_case = T),    replacement = "sd")   %>%
+    str_replace_all(pattern = regex("count\\(\\*\\)", ignore_case = T), replacement = "n()")  %>%
+    str_replace_all(pattern = regex("count\\(distinct\\(([a-zA-z0-9_]+)\\)\\)", ignore_case = T),
                     replacement = "n_distinct(\\1)") %>%
 
     # Case when
@@ -83,34 +85,34 @@ transform_conditions <- function(chaine){
                 replacement = "is.na(\\1)") %>%
     str_replace(pattern = "([a-zA-Z0-9.]+)\\s?<>\\s?\\.",
                 replacement = "!is.na(\\1)") %>%
-    str_replace(pattern = "([a-zA-Z0-9.]+)\\sis\\snull",
+    str_replace(pattern = regex("([a-zA-Z0-9.]+)\\sis\\snull", ignore_case = T),
                 replacement = "is.na(\\1)") %>%
-    str_replace(pattern = "([a-zA-Z0-9.]+)\\sis\\s\\not\\snull",
+    str_replace(pattern = regex("([a-zA-Z0-9.]+)\\sis\\s\\not\\snull", ignore_case = T),
                 replacement = "!is.na(\\1)") %>%
 
     # Remplacement =/le/ge/<>
     str_replace_all(pattern = "\\s?=\\s?",  replacement = " == ") %>%
-    str_replace_all(pattern = "\\sge\\s",   replacement = " >= ") %>%
-    str_replace_all(pattern = "\\sle\\s",   replacement = " <= ") %>%
+    str_replace_all(pattern = regex("\\sge\\s", ignore_case = T),   replacement = " >= ") %>%
+    str_replace_all(pattern = regex("\\sle\\s", ignore_case = T),   replacement = " <= ") %>%
     str_replace_all(pattern = "\\s?<>\\s?", replacement = " != ") %>%
 
     # Remplacement NOT IN
-    str_replace(pattern = "([a-zA-Z0-9.]+)\\snot\\sin\\s([a-zA-Z0-9,()]+)",
+    str_replace(pattern = regex("([a-zA-Z0-9.]+)\\snot\\sin\\s([a-zA-Z0-9,()]+)", ignore_case = T),
                 replacement = "!(\\1 %in% c\\2)") %>%
 
     # Remplacement IN
-    str_replace(pattern = "([a-zA-Z0-9.]+)\\sin\\s([a-zA-Z0-9,()]+)",
+    str_replace(pattern = regex("([a-zA-Z0-9.]+)\\sin\\s([a-zA-Z0-9,()]+)", ignore_case = T),
                 replacement = "\\1 %in% c\\2") %>%
 
     # Remplacement BETWEEN
-    str_replace(pattern = "([a-zA-Z0-9.]+)\\sbetween\\s(\\w+)\\sand\\s(\\w+)",
+    str_replace(pattern = regex("([a-zA-Z0-9.]+)\\sbetween\\s(\\w+)\\sand\\s(\\w+)", ignore_case = T),
                 replacement = "between(\\1, \\2, \\3)") %>%
 
     # Remplacement LIKES
     # TODO
 
     # Remplacement and et or
-    str_replace_all(pattern = "\\s?and\\s?",  replacement = " & ") %>%
-    str_replace_all(pattern = "\\s?or\\s?",   replacement = " | ") %>%
-    str_replace_all(pattern = "\\s?not\\s?",  replacement = " !")
+    str_replace_all(pattern = regex("\\s?and\\s?", ignore_case = T),  replacement = " & ") %>%
+    str_replace_all(pattern = regex("\\s?or\\s?", ignore_case = T),   replacement = " | ") %>%
+    str_replace_all(pattern = regex("\\s?not\\s?", ignore_case = T),  replacement = " !")
 }
