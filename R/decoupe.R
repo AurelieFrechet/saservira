@@ -93,10 +93,11 @@ decoupe_requete <- function(requete, key_words){
   # Decoupe
   sentence <- str_split(string = requete,
                         pattern = pattern_kw)[[1]] %>%
+    str_trim() %>%
     {
-      .[-which(. == "")]
-    } %>%
-    str_trim()
+      .[!(. == "")]
+    }
+
 
   # Identification
   kw <- str_extract(string = sentence,
