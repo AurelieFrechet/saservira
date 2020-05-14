@@ -151,7 +151,9 @@ sql_to_dplyr <- function(code_sql) {
 
   # Partie WHERE ----
   if (!is.na(sentence["where"])) {
-    dplyr_filter <- transform_conditions(sentence["where"])
+    dplyr_filter <- sentence["where"] %>%
+      transform_conditions() %>%
+      paste0("filter(", ., ")")
   }
 
   # TODO : Partie Order by ----

@@ -109,7 +109,7 @@ decoupe_requete <- function(requete, key_words){
     str_trim()
 
   # Messages d'erreur
-  if(length(sentence) == 0){
+  if(all(is.na(kw))){
     message("Requete does not contain key words")
     return(NULL)
   }

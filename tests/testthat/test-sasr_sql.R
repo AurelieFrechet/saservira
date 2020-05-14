@@ -62,13 +62,7 @@ test_that("sql_dplyr_select : calcul", {
 
 
 # Clause WHERE ------------------------------------------------------------
-test_that("sql_dplyr_where : équations", {
-  requete_sql <-
-    "var1 > 1 and var2 = \"frechet\" and var <> \"vide\""
-  sql_dplyr_where(requete_sql)
-  expect_equal(sql_dplyr_where(requete_sql),
-               "filter(var1 > 1 & var2 == \"frechet\" & var != \"vide\")")
-})
+
 
 # Clause ORDER BY ---------------------------------------------------------
 
