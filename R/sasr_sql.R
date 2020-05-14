@@ -100,50 +100,6 @@ sql_dplyr_select <- function(select_clause) {
 }
 
 
-#' @export
-sql_dplyr_where  <- function(where_clause){
-  where_clause %>%
-
-    # Gestion NULL et .
-    str_replace(pattern = "([a-zA-Z0-9.]+)\\s?=\\s?\\.",
-                replacement = "is.na(\\1)") %>%
-    str_replace(pattern = "([a-zA-Z0-9.]+)\\s?<>\\s?\\.",
-                replacement = "!is.na(\\1)") %>%
-    str_replace(pattern = "([a-zA-Z0-9.]+)\\sis\\snull",
-                replacement = "is.na(\\1)") %>%
-    str_replace(pattern = "([a-zA-Z0-9.]+)\\sis\\s\\not\\snull",
-                replacement = "!is.na(\\1)") %>%
-
-    # Remplacement =/le/ge/<>
-    str_replace_all(pattern = "\\s?=\\s?",  replacement = " == ") %>%
-    str_replace_all(pattern = "\\sge\\s",   replacement = " >= ") %>%
-    str_replace_all(pattern = "\\sle\\s",   replacement = " <= ") %>%
-    str_replace_all(pattern = "\\s?<>\\s?", replacement = " != ") %>%
-
-    # Remplacement NOT IN
-    str_replace(pattern = "([a-zA-Z0-9.]+)\\snot\\sin\\s([a-zA-Z0-9,()]+)",
-                replacement = "!(\\1 %in% c\\2)") %>%
-
-    # Remplacement IN
-    str_replace(pattern = "([a-zA-Z0-9.]+)\\sin\\s([a-zA-Z0-9,()]+)",
-                replacement = "\\1 %in% c\\2") %>%
-
-    # Remplacement BETWEEN
-    str_replace(pattern = "([a-zA-Z0-9.]+)\\sbetween\\s(\\w+)\\sand\\s(\\w+)",
-                replacement = "between(\\1, \\2, \\3)") %>%
-
-    # Remplacement LIKES
-    # TODO
-
-    # Remplacement and et or
-    str_replace_all(pattern = "\\s?and\\s?",  replacement = " & ") %>%
-    str_replace_all(pattern = "\\s?or\\s?",   replacement = " | ") %>%
-    str_replace_all(pattern = "\\s?not\\s?",  replacement = " !") %>%
-
-    # Mise en fonction
-    paste0("filter(", ., ")")
-}
-
 
 #' sql_to_dplyr
 #' @include decoupe.R
@@ -195,7 +151,7 @@ sql_to_dplyr <- function(code_sql) {
 
   # Partie WHERE ----
   if (!is.na(sentence["where"])) {
-    dplyr_filter <- sql_dplyr_where(sentence["where"])
+    dplyr_filter <- transform_conditions(sentence["where"])
   }
 
   # TODO : Partie Order by ----
