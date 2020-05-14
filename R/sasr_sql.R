@@ -1,26 +1,51 @@
+# Merci à Nolwenn Lannuel :)
+
+
+
+#' @include utils.R
+
 sql_dplyr_select <- function(select_clause) {
+  # Détection du ALL
+  is_all       <- select_clause == "*"
+  contains_all <-
+    str_detect(string = select_clause, pattern = "\\*")
+
+  # Détection du DISTINCT
+  is_distinct  <- str_detect(string = select_clause,
+                             pattern = regex("distinct", ignore_case = T))
+
+  # Découpage de la clause par la virgule
   code <-
     select_clause %>%
     str_split(pattern = ",") %>%
     unlist() %>%
     str_trim()
 
+  # Détection de création de variable
+  is_create   <- str_detect(string = code, pattern = "\\sas\\s")
+
+  # Détection de fonctions
+  is_function <- str_detect(string = code, pattern = "\\(")
+
+
+  # Extraction du nom des nouvelles variables
   nom_var <-
     str_extract(code,
                 pattern = "(?<=as\\s).*")
+  # Extraction du contenu des nouvelles variables
+  contenu <-
+    str_extract(code,
+                pattern = ".*(?=\\sas)") %>%
+    transform_functions()
 
+  # Préparation du select général
   select_code <- nom_var %>%
     ifelse(is.na(.), code, .) %>%
     paste0("\"", ., "\"") %>%
     paste(., collapse = ", ") %>%
     paste0("select(", ., ")")
 
-  fonction <- str_detect(code, "\\(")
-
-  contenu <-
-    str_extract(code,
-                pattern = ".*(?=\\sas)")
-
+  # Affectation des noms de variables à leur contenu
   affectation <-
     ifelse(is.na(nom_var), NA,
            paste(nom_var, contenu, sep = " = ")) %>%
@@ -29,20 +54,45 @@ sql_dplyr_select <- function(select_clause) {
     } %>%
     paste(., collapse = ", ")
 
-  if (all(fonction)) {
-    # Que des fonctions
-    return_code <- affectation %>%
-      paste0("summarize(", ., ")")
 
+  ## SI ALL
+  if (is_all) {
+    return_code <- NULL
   } else {
-    if (all(is.na(contenu))) {
-      # Pas d'affection de variable
-      return_code <- select_code
+    ## SI DISTINCT
+    if (is_distinct) {
+      #TODO
+    } else {
+      ## SI ne contient que des fonctions
+      if (all(is_function)) {
+        return_code <- affectation %>%
+          paste0("summarize(", ., ")")
+      } else {
+        ## SI ne contient que des créations de variables
+        if (all(is_create)) {
+          return_code <- affectation %>%
+            paste0("transmute(", ., ")")
+        } else {
+          # Si contient ALL
+          if (contains_all & any(is_create)) {
+            return_code <- affectation %>%
+              paste0("mutate(", ., ")")
+          } else {
+            # SI Extraction pure
+            if (all(is.na(contenu))) {
+              # Pas d'affection de variable
+              return_code <- select_code
 
-    } else{
-      # Creation de variable
-      return_code <- affectation %>%
-        paste0("mutate(", ., ") %>%\n\t", select_code)
+            } else{
+              # Creation de variable
+              return_code <- affectation %>%
+                paste0("mutate(", ., ") %>%\n\t", select_code)
+            }
+
+          }
+        }
+
+      }
     }
   }
 

@@ -31,19 +31,33 @@ test_that("sql_dplyr_select : selection simple", {
                "select(\"var1\", \"var2\", \"var3\")")
 })
 
-test_that("sql_dplyr_select : creation variable", {
+test_that("sql_dplyr_select : creation variable 1", {
   requete_sql <-
     "old as new"
   expect_equal(sql_dplyr_select(requete_sql),
-               "mutate(new = old) %>%\n\tselect(\"new\")")
+               "transmute(new = old)")
 })
 
-# test_that("sql_dplyr_select : calcul", {
-#   requete_sql <-
-#     "avg(age) as moy"
-#   expect_equal(sql_dplyr_select(requete_sql),
-#                "summarize(moy = mean(age))")
-# })
+test_that("sql_dplyr_select : creation variable 2", {
+  requete_sql <-
+    "*, old as new"
+  expect_equal(sql_dplyr_select(requete_sql),
+               "mutate(new = old)")
+})
+
+test_that("sql_dplyr_select : creation variable 3", {
+  requete_sql <-
+    "var1, old as new"
+  expect_equal(sql_dplyr_select(requete_sql),
+               "mutate(new = old) %>%\n\tselect(\"var1\", \"new\")")
+})
+
+test_that("sql_dplyr_select : calcul", {
+  requete_sql <-
+    "avg(age) as moy"
+  expect_equal(sql_dplyr_select(requete_sql),
+               "summarize(moy = mean(age))")
+})
 
 
 

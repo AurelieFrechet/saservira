@@ -15,8 +15,10 @@ Collate:
     'expressions.R'
     'sasr_contents.R'
     'sasr_data.R'
+    'sasr_means.R'
     'sasr_replace_mv.R'
     'sasr_sql.R'
     'transcripteur.R'
+    'utils.R'
 Suggests: 
     testthat (>= 2.1.0)

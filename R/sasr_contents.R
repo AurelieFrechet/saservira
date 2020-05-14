@@ -20,10 +20,9 @@ paste_str <- function(string) {
 #' @export
 #'
 sasr_contents <- function(code_sas) {
-  data <- str_match(string = code_sas,
-                    pattern = "data\\s?=\\s?([0-9a-zA-Z.]+)")
 
-  code_r <- paste_str(data[, 2])
+  code_r <- data_equal_to(code_sas) %>%
+    paste_str(.)
 
   return(code_r)
 }

@@ -12,7 +12,7 @@ reecriture <- function(id, code) {
 
 
 #' Transcripteur
-#'
+#' @include decoupe.R
 #' @import dplyr
 #' @description traduit du code SAS en R
 #'
