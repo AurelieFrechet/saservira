@@ -126,6 +126,7 @@ sql_to_dplyr <- function(code_sql) {
                                             "from",
                                             "where",
                                             "order by",
+                                            "having",
                                             "group by",
                                             "limit"))
 
@@ -178,6 +179,13 @@ sql_to_dplyr <- function(code_sql) {
       paste0("filter(", ., ")")
   }
 
+  # Partie HAVING ----
+  if (!is.na(sentence["having"])) {
+    dplyr_filter <- sentence["having"] %>%
+      transform_conditions() %>%
+      paste0("filter(", ., ")")
+  }
+
   # Partie Order by ----
   if (!is.na(sentence["order by"])) {
     dplyr_arrange <- sentence["order by"] %>%
@@ -192,11 +200,11 @@ sql_to_dplyr <- function(code_sql) {
 
   # Return
   requete_dplyr <- c(dplyr_data,
+                     dplyr_groupby,
                      dplyr_mutate,
                      dplyr_select,
                      dplyr_filter,
-                     dplyr_arrange,
-                     dplyr_groupby) %>%
+                     dplyr_arrange) %>%
     {
       .[!is.na(.)]
     } %>%
