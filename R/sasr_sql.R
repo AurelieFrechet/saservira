@@ -3,7 +3,6 @@
 
 
 #' @include utils.R
-
 sql_dplyr_select <- function(select_clause) {
   # Détection du ALL
   is_all       <- select_clause == "*"
@@ -131,6 +130,29 @@ sql_to_dplyr <- function(code_sql) {
                                             "limit"))
 
 
+  # Partie Groupe by ----
+  if (!is.na(sentence["group by"])) {
+
+    # Soustraction des var du group by au select
+    var_groupby <- sentence["group by"]%>%
+      str_split(pattern = ',') %>%
+      unlist() %>%
+      str_trim()
+
+
+    var_select <- sentence["select"]%>%
+      str_split(pattern = ',') %>%
+      unlist() %>%
+      str_trim()
+
+
+    sentence["select"] <- setdiff(var_select, var_groupby) %>%
+      paste(., collapse = ", ")
+
+
+    dplyr_groupby <- var_groupby %>%
+      paste0("group_by(", . ,")")
+  }
 
   # Partie SELECT ----
   if (sentence["select"] != "*") {
@@ -156,18 +178,16 @@ sql_to_dplyr <- function(code_sql) {
       paste0("filter(", ., ")")
   }
 
-  # TODO : Partie Order by ----
+  # Partie Order by ----
   if (!is.na(sentence["order by"])) {
     dplyr_arrange <- sentence["order by"] %>%
+      str_replace_all(pattern = regex("([\\S]+)\\sdesc", ignore_case = T),
+                      replacement = "-\\1") %>%
       paste0("arrange(", . ,")")
   }
 
 
-  # TODO : Partie Groupe by ----
-  if (!is.na(sentence["group by"])) {
-    dplyr_groupby <- sentence["group by"]%>%
-      paste0("group_by(", . ,")")
-  }
+
 
 
   # Return

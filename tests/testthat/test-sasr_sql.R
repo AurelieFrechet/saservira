@@ -66,7 +66,18 @@ test_that("sql_dplyr_select : calcul", {
 
 # Clause ORDER BY ---------------------------------------------------------
 
+test_that("order by", {
+  code_sql <- "select * from tbl1 order by var1, var2 desc"
+  expect_equal(sql_to_dplyr(code_sql), "tbl1 %>%\n\tarrange(var1, -var2)")
+
+})
+
 
 # Clause GROUP BY ---------------------------------------------------------
+test_that("group by", {
+  code_sql <- "select var1, max(var2) as max from tbl1 group by var1"
+  expect_equal(sql_to_dplyr(code_sql),
+               "tbl1 %>%\n\tsummarize(max = max(var2)) %>%\n\tgroup_by(var1)")
 
+})
 
