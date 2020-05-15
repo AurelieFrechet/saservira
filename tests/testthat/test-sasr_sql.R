@@ -28,7 +28,7 @@ test_that("sql_dplyr_select : selection simple", {
   requete_sql <-
     "var1, var2, var3"
   expect_equal(sql_dplyr_select(requete_sql),
-               "select(\"var1\", \"var2\", \"var3\")")
+               "select(var1, var2, var3)")
 })
 
 test_that("sql_dplyr_select : creation variable 1", {
@@ -49,7 +49,7 @@ test_that("sql_dplyr_select : creation variable 3", {
   requete_sql <-
     "var1, old as new"
   expect_equal(sql_dplyr_select(requete_sql),
-               "mutate(new = old) %>%\n\tselect(\"var1\", \"new\")")
+               "mutate(new = old) %>%\n\tselect(var1, new)")
 })
 
 test_that("sql_dplyr_select : calcul", {
@@ -58,10 +58,6 @@ test_that("sql_dplyr_select : calcul", {
   expect_equal(sql_dplyr_select(requete_sql),
                "summarize(moy = mean(age))")
 })
-
-
-
-# Clause WHERE ------------------------------------------------------------
 
 
 # Clause ORDER BY ---------------------------------------------------------
@@ -77,7 +73,14 @@ test_that("order by", {
 test_that("group by", {
   code_sql <- "select var1, max(var2) as max from tbl1 group by var1"
   expect_equal(sql_to_dplyr(code_sql),
-               "tbl1 %>%\n\tsummarize(max = max(var2)) %>%\n\tgroup_by(var1)")
+               "tbl1 %>%\n\tgroup_by(var1) %>%\n\tsummarize(max = max(var2))")
+
+})
+
+test_that("group by + having", {
+  code_sql <- "select var1, count(*) as nb from tbl1 group by var1 having nb>1"
+  expect_equal(sql_to_dplyr(code_sql),
+               "tbl1 %>%\n\tgroup_by(var1) %>%\n\tsummarize(nb = n()) %>%\n\tfilter(nb>1)")
 
 })
 

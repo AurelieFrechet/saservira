@@ -40,7 +40,7 @@ sql_dplyr_select <- function(select_clause) {
   # Préparation du select général
   select_code <- nom_var %>%
     ifelse(is.na(.), code, .) %>%
-    paste0("\"", ., "\"") %>%
+    # paste0("\"", ., "\"") %>%
     paste(., collapse = ", ") %>%
     paste0("select(", ., ")")
 
@@ -128,7 +128,10 @@ sql_to_dplyr <- function(code_sql) {
                                             "order by",
                                             "having",
                                             "group by",
-                                            "limit"))
+                                            "left join",
+                                            "right join",
+                                            "inner join",
+                                            "full join"))
 
 
   # Partie Groupe by ----
@@ -194,6 +197,7 @@ sql_to_dplyr <- function(code_sql) {
       paste0("arrange(", . ,")")
   }
 
+  # Jointures ----
 
 
 
