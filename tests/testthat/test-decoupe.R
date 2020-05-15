@@ -20,6 +20,26 @@ test_that("decoupe sql - Cas normal", {
 
 })
 
+test_that("decoupe sql - Ignore CASE", {
+  code_sql <- "SELECT * FROM table WHERE nom=\"Frechet\""
+  sentence <- decoupe_requete(code_sql,
+                              key_words = c("select",
+                                            "from",
+                                            "where",
+                                            "order by",
+                                            "group by",
+                                            "limit"))
+  expect_length(sentence, 3)
+  expect_equal(names(sentence),
+               c("select", "from", "where"))
+  compare(sentence,
+          c("*", "table", "nom=\"frechet\""),
+          check.attributes = FALSE,
+  )
+
+})
+
+
 test_that("decoupe sql - Cas vide", {
 code_sql <- "phrase qui n'a aucun rapport"
 sentence <- decoupe_requete(code_sql,

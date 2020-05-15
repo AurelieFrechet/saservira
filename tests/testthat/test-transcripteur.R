@@ -3,7 +3,7 @@ test_that("test sur iris", {
   proc sql;
   select * from iris where Species=\"setosa\";
   quit;"
-  expect_equal(traducteur(code_sas), "str(iris)\n  iris %>%\n\tfilter(species == \"setosa\")")
+  expect_equal(traducteur(code_sas), "str(iris)\n  iris %>%\n\tfilter(Species == \"setosa\")")
 
 })
 

@@ -25,10 +25,12 @@ traducteur <- function(code_sas) {
   # code_sas <- readLines(input, encoding = "UTF-8", warn=FALSE) %>%
   #   paste(., collapse = "\n") %>%
   code_sas <-  code_sas %>%
-    tolower() %>%
-    str_replace_all(pattern = "run\\s?;" , replacement = "run;") %>%
-    str_replace_all(pattern = "quit\\s?;", replacement = "quit;")
-
+    str_replace_all(pattern = regex("run\\s?;",
+                                    ignore_case = TRUE),
+                    replacement = "run;") %>%
+    str_replace_all(pattern = regex("quit\\s?;",
+                                    ignore_case = TRUE),
+                    replacement = "quit;")
 
   code_decoupe <- decouper_SAS(code_sas)
 

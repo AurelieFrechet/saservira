@@ -22,21 +22,25 @@ decouper_SAS <- function(code_sas) {
   locate_proc <- str_locate_all(
     code_sas,
     regex(pattern =   "(?=(proc \\w+))[\\s\\S]*?(?<=(run;|quit;))",
-          multiline = TRUE)
+          multiline = TRUE,
+          ignore_case = TRUE)
   )[[1]]
   match_proc  <- str_match_all(
     code_sas,
     regex(pattern =  "(?=(proc \\w+))[\\s\\S]*?(?<=(run;|quit;))",
-          multiline = TRUE)
+          multiline = TRUE,
+          ignore_case = TRUE)
   )[[1]]
 
   # ETAPES DATA : data [...] run;
   locate_data <- str_locate_all(code_sas,
                                 regex(pattern   = "(?=(^data))[\\s\\S]*?(?<=(run;))",
-                                      multiline = TRUE))[[1]]
+                                      multiline = TRUE,
+                                      ignore_case = TRUE))[[1]]
   match_data  <- str_match_all(code_sas,
                                regex(pattern   = "(?=(^data))[\\s\\S]*?(?<=(run;))",
-                                     multiline = TRUE))[[1]]
+                                     multiline = TRUE,
+                                     ignore_case = TRUE))[[1]]
 
   # COMMENTAIRES 1 LIGNE
   locate_c1   <- str_locate_all(code_sas,
@@ -92,7 +96,7 @@ decoupe_requete <- function(requete, key_words){
 
   # Decoupe
   sentence <- str_split(string = requete,
-                        pattern = pattern_kw)[[1]] %>%
+                        pattern = regex(pattern_kw, ignore_case = T))[[1]] %>%
     str_trim() %>%
     {
       .[!(. == "")]
@@ -100,12 +104,14 @@ decoupe_requete <- function(requete, key_words){
 
 
   # Identification
-  kw <- str_extract(string = sentence,
+  kw <- str_extract(string = tolower(sentence),
                     pattern = paste(key_words, collapse = "|"))
 
   # Nettoyage
+  kw_pattern <- paste(key_words, collapse = "|")
   sentence <- sentence %>%
-    str_remove(pattern = paste(key_words, collapse = "|")) %>%
+    str_replace_all(pattern = regex(kw_pattern, ignore_case = T),
+                    replacement = "") %>%
     str_trim()
 
   # Messages d'erreur
