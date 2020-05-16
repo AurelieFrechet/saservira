@@ -1,17 +1,3 @@
-
-
-#' paste_str
-#' @description Colle la fonction str() autour d'un string
-#' @param string
-#'
-#' @return
-#'
-#' @examples
-paste_str <- function(string) {
-  paste0("str(", string, ")")
-}
-
-
 #' sasr_contents
 #' @import stringr
 #' @param code_sas
