@@ -1,4 +1,23 @@
 
+# data_equal_to -----------------------------------------------------------
+
+test_that("data equal to sans librairie", {
+code_sas = "proc contents data=table_1;run;"
+expect_equal(data_equal_to(code_sas),
+             "table_1")
+
+})
+
+test_that("data equal to avec librairie", {
+  code_sas = "proc contents data=lib4.table_1;run;"
+  expect_equal(
+    data_equal_to(code_sas),
+    "file.path(lib4, \"table_1\")"
+  )
+
+})
+
+
 # transform conditions ----------------------------------------------------
 
 test_that("Equations", {
@@ -25,4 +44,25 @@ END"
 test_that("fonctions simples", {
   chaine <- "avg(var1), count(*)"
   expect_equal(transform_functions(chaine), "mean(var1), n()")
+})
+
+
+# transform list ----------------------------------------------------------
+
+test_that("liste character", {
+  chaine <- "{l1 l2 l3 l4 l5 }"
+  expect_equal(
+    transform_list(chaine),
+    "c(\"l1\", \"l2\", \"l3\", \"l4\", \"l5\")"
+  )
+
+})
+
+test_that("liste numerique", {
+  chaine <- "{1 2 3 4 5 }"
+  expect_equal(
+    transform_list(chaine),
+    "c(1, 2, 3, 4, 5)"
+  )
+
 })

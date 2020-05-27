@@ -10,10 +10,12 @@ test_that("decoupe sql - Cas normal", {
                                             "order by",
                                             "group by",
                                             "limit"))
-  expect_length(sentence, 3)
-  expect_equal(names(sentence),
+  expect_length(sentence, 2)
+  expect_length(sentence$kw, 3)
+  expect_length(sentence$text, 3)
+  expect_equal(sentence$kw,
                c("select", "from", "where"))
-  compare(sentence,
+  compare(sentence$text,
                c("*", "table", "nom=\"frechet\""),
           check.attributes = FALSE,
           )
@@ -29,10 +31,12 @@ test_that("decoupe sql - Ignore CASE", {
                                             "order by",
                                             "group by",
                                             "limit"))
-  expect_length(sentence, 3)
-  expect_equal(names(sentence),
+  expect_length(sentence, 2)
+  expect_length(sentence$kw, 3)
+  expect_length(sentence$text, 3)
+  expect_equal(sentence$kw,
                c("select", "from", "where"))
-  compare(sentence,
+  compare(sentence$text,
           c("*", "table", "nom=\"frechet\""),
           check.attributes = FALSE,
   )

@@ -120,6 +120,5 @@ decoupe_requete <- function(requete, key_words){
     return(NULL)
   }
 
-  names(sentence) <- kw
-  return(sentence)
+  return(list(kw = kw, text = sentence))
 }

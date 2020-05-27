@@ -19,3 +19,13 @@ test_that("code non reconnu", {
   expect_equal(traducteur(code_sas), "code non reconnu")
 
 })
+
+
+test_that("sasr_sql : code de William", {
+  code_sas <- "Proc sql noprint;
+  select date as date format yyddmm8., field1, length(field2), catx('|',field3,field4) as concat
+  from my_lib.my_table
+  order by date;
+quit;"
+  traducteur(code_sas)
+})

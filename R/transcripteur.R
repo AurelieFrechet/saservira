@@ -22,6 +22,9 @@ reecriture <- function(id, code) {
 #' @export
 #'
 traducteur <- function(code_sas) {
+  # TODO : Suppression des options non transcriptibles en R
+  code_sas <- code_sas %>%
+    str_remove_all(pattern = regex("noprint", ignore_case = T))
   # code_sas <- readLines(input, encoding = "UTF-8", warn=FALSE) %>%
   #   paste(., collapse = "\n") %>%
   code_sas <-  code_sas %>%

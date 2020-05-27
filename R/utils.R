@@ -1,6 +1,20 @@
+#' data_equal_to
+#' @description detecte la valeur da data et la renvoie, contenur dans une
+#' fonction file.path si elle est associée à une librairie SAS
+#' @param code_sas
 data_equal_to <- function(code_sas){
-  str_match(string = code_sas,
-            pattern = "data\\s?=\\s?([0-9a-zA-Z.]+)")[,2]
+  data_equal <- str_match(string = code_sas,
+            pattern = "data\\s?=\\s?([0-9a-zA-Z._]+)")[,2]
+
+  if (str_detect(data_equal, "\\.")){
+    data_equal <- data_equal %>%
+      str_split(pattern = "\\.") %>%
+      unlist()
+
+    data_equal <- paste0("file.path(", data_equal[1],", \"", data_equal[2], "\")")
+  }
+
+  return(data_equal)
 }
 
 #' transform pattern
@@ -8,7 +22,7 @@ data_equal_to <- function(code_sas){
 #' dans les clauses WHERE d'une requête SQL
 #' @param chaine chaine de caractères de la clause
 transform_pattern  <- function(chaine){
-
+#TODO
 }
 
 
@@ -19,8 +33,12 @@ transform_pattern  <- function(chaine){
 transform_conditions <- function(chaine){
   chaine %>%
     # Gestion NULL et .
+    str_replace(pattern = "([a-zA-Z0-9.]+)\\snot\\s?=\\s?\\.",
+                replacement = "!is.na(\\1)") %>%
     str_replace(pattern = "([a-zA-Z0-9.]+)\\s?=\\s?\\.",
                 replacement = "is.na(\\1)") %>%
+    str_replace(pattern = regex("([a-zA-Z0-9.]+)\\sne\\s?\\.", ignore_case = T),
+                replacement = "!is.na(\\1)") %>%
     str_replace(pattern = "([a-zA-Z0-9.]+)\\s?<>\\s?\\.",
                 replacement = "!is.na(\\1)") %>%
     str_replace(pattern = regex("([a-zA-Z0-9.]+)\\sis\\snull", ignore_case = T),
@@ -30,6 +48,7 @@ transform_conditions <- function(chaine){
 
     # Remplacement =/le/ge/<>
     str_replace_all(pattern = "\\s?=\\s?",  replacement = " == ") %>%
+    str_replace_all(pattern = regex("\\sne\\s", ignore_case = T),   replacement = " != ") %>%
     str_replace_all(pattern = regex("\\sge\\s", ignore_case = T),   replacement = " >= ") %>%
     str_replace_all(pattern = regex("\\sle\\s", ignore_case = T),   replacement = " <= ") %>%
     str_replace_all(pattern = "\\s?<>\\s?", replacement = " != ") %>%
@@ -41,6 +60,10 @@ transform_conditions <- function(chaine){
     # Remplacement IN
     str_replace(pattern = regex("([a-zA-Z0-9.]+)\\sin\\s([a-zA-Z0-9,()]+)", ignore_case = T),
                 replacement = "\\1 %in% c\\2") %>%
+
+    # Remplacement NOT BETWEEN
+    str_replace(pattern = regex("([a-zA-Z0-9.]+)\\snot\\sbetween\\s(\\w+)\\sand\\s(\\w+)", ignore_case = T),
+                replacement = "!between(\\1, \\2, \\3)") %>%
 
     # Remplacement BETWEEN
     str_replace(pattern = regex("([a-zA-Z0-9.]+)\\sbetween\\s(\\w+)\\sand\\s(\\w+)", ignore_case = T),
@@ -122,6 +145,27 @@ transform_functions <- function(chaine){
   chaine <- transform_conditions(chaine)
 
   return(chaine)
+}
+
+
+#' Transform listes
+#' @description remplace une liste SAS par son équivalent vectoriel R
+#' @param chaine liste SAS au format {l1 l2 l3}
+
+transform_list <- function(chaine){
+  valeurs <- chaine %>%
+    str_remove(pattern = "\\{") %>%
+    str_remove(pattern = "\\}") %>%
+    str_trim() %>%
+    str_split(pattern = "\\s") %>%
+    unlist()
+
+  valeurs_numeric <- suppressWarnings(as.numeric(valeurs))
+  if(all(!is.na(valeurs_numeric))){
+    valeurs <- valeurs_numeric
+  }
+
+  return(paste(list(valeurs), collapse = ", "))
 }
 
 

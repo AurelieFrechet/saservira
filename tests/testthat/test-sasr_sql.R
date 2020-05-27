@@ -11,6 +11,7 @@ test_that("sasr_sql : iris", {
 })
 
 
+
 # clause FROM ------------------------------------------------------------
 
 test_that("sql_to_dplyr : clause from", {

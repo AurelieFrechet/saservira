@@ -3,6 +3,7 @@
 export(decoupe_requete)
 export(decouper_SAS)
 export(sasr_contents)
+export(sasr_libname)
 export(sasr_sql)
 export(sql_to_dplyr)
 export(traducteur)
