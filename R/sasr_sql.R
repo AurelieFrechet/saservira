@@ -272,7 +272,7 @@ sql_to_dplyr <- function(code_sql) {
 sasr_sql <- function(code_sas) {
   # Séparer les différentes requêtes ----
   requetes <- code_sas %>%
-    str_remove(pattern = regex("proc sql\\s*;", ignore_case = T)) %>%
+    str_remove(pattern = regex("proc\\s+sql\\s*;", ignore_case = T)) %>%
     str_remove(pattern = regex("quit\\s*;", ignore_case = T)) %>%
     str_split(pattern = ";") %>%
     unlist() %>%

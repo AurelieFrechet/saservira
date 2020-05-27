@@ -69,10 +69,11 @@ decouper_SAS <- function(code_sas) {
               match_data[, 1],
               match_c1[, 1],
               match_c2[, 1]),
-    id = str_trim(c(match_proc[, 2],
+    id = tolower(
+      str_trim(c(match_proc[, 2],
            match_data[, 2],
            match_c1[, 2],
-           match_c2[, 2]))
+           match_c2[, 2])))
   ))
 }
 

@@ -10,6 +10,14 @@ test_that("sasr_sql : iris", {
 
 })
 
+test_that("test boulot", {
+  code_sas = "select rB010, rB030, RB080, RB0808F
+  from table
+  where (RB080 not between 1890 and 2018 and RB080 not = .)
+  order by rb010, rB030;"
+  sql_to_dplyr(code_sas)
+})
+
 
 
 # clause FROM ------------------------------------------------------------

@@ -7,6 +7,16 @@ test_that("test sur iris", {
 
 })
 
+test_that("test boulot", {
+  code_sas = "PROC SQL;
+  select rB010, rB030, RB080, RB0808F
+  from table
+  where (RB080 not between 1890 and 2018 and RB080 not = .)
+  order by rb010, rB030;
+  QUIT;"
+  traducteur(code_sas)
+})
+
 
 test_that("vide", {
   code_sas <- ""
