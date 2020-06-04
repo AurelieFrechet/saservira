@@ -157,7 +157,7 @@ transform_list <- function(chaine){
     str_remove(pattern = "\\{") %>%
     str_remove(pattern = "\\}") %>%
     str_trim() %>%
-    str_split(pattern = "\\s") %>%
+    str_split(pattern = "\\s+") %>%
     unlist()
 
   valeurs_numeric <- suppressWarnings(as.numeric(valeurs))
@@ -166,6 +166,15 @@ transform_list <- function(chaine){
   }
 
   return(paste(list(valeurs), collapse = ", "))
+}
+
+
+#' transform path
+#' @description change le chemin d'un fichier de façon compatible à la lecture dans R
+#' En changeant \ en /
+#' @param chaine chemin du fichier
+transform_path <- function(chaine){
+  return(gsub("\\", "/", chaine, fixed=TRUE))
 }
 
 

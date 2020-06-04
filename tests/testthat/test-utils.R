@@ -66,3 +66,13 @@ test_that("liste numerique", {
   )
 
 })
+
+
+
+# transform path ----------------------------------------------------------
+
+test_that("test de chemin SAS", {
+  chaine <- "M:\\Chemin\\Dossier\\Sous-dossier\\fichier.xls"
+  expect_equal(transform_path(chaine),
+  "M:/Chemin/Dossier/Sous-dossier/fichier.xls")
+})
