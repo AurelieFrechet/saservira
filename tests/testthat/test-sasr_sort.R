@@ -3,7 +3,8 @@ test_that("Sort simple", {
   by AA_CODET;
   run;"
 
-  "agregtva %>% arrange(AA_CODET)"
+  expect_equal(sasr_sort(code_sas),
+  "agregtva %>% arrange(AA_CODET)")
 })
 
 
@@ -12,5 +13,6 @@ test_that("Sort descendant et out : exemple support sas", {
   by town descending debt accountnumber;
   run;"
 
-  "sorted <- account %>% arrange(town, desc(debt), accountnumber)"
+  expect_equal(sasr_sort(code_sas),
+  "sorted <- account %>% arrange(town, desc(debt), accountnumber)")
 })

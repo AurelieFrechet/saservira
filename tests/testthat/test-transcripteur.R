@@ -38,4 +38,5 @@ test_that("sasr_sql : code de William", {
   order by date;
 quit;"
   traducteur(code_sas)
+  "my_lib.my_table %>%\n\tmutate(date = date, length(field2), concat = paste(field3, field4, sep = \"|\")) %>%\n\tselect(date, field1, length(field2), concat))"
 })
