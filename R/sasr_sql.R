@@ -1,22 +1,5 @@
 # Merci à Nolwenn Lannuel :)
-list_select = "var1, var2 as new, var3 into :nb, var4 into:b, var5 v"
-read_select <- function(list_select){
-  vars_select <- list_select %>%
-    str_split(pattern = ",") %>%
-    unlist() %>%
-    str_trim
 
-  attribution <- vars_select %>%
-    str_split(pattern = "\\sinto\\s?:\\s?|\\sas\\s|\\s")
-
-  attribution <- do.call(rbind, attribution) %>%
-    as.data.frame()
-
-  colnames(attribution) <- c("old", "new")
-
-  return(attribution)
-
-  }
 
 #' @include utils.R
 sql_dplyr_select <- function(select_clause) {
@@ -30,40 +13,45 @@ sql_dplyr_select <- function(select_clause) {
                              pattern = regex("distinct", ignore_case = T))
 
   # Découpage de la clause par la virgule
-  code <-
-    select_clause %>%
+  code <- select_clause %>%
     str_split(pattern = ",") %>%
     unlist() %>%
-    str_trim()
+    str_trim
 
-  # Détection de création de variable
-  is_create   <- str_detect(string = code, pattern = "\\sas\\s")
+  attribution <- code %>%
+    str_split(pattern = "\\sinto\\s?:\\s?|\\sas\\s|\\s")
+
+  attribution <- do.call(rbind, attribution) %>%
+    as.data.frame(stringsAsFactors = FALSE)
+
+  if(ncol(attribution) == 2){
+    noms_var = attribution[, 2]
+    contenu  = ifelse(attribution[, 1] == attribution[, 2],
+                      NA,
+                      attribution[, 1]) %>%
+      transform_functions()
+  } else {
+    noms_var = attribution[, 1]
+    contenu  = rep(NA, length(noms_var))
+  }
+
+  # Detection de contenu
+  is_create <- ifelse(is.na(contenu), FALSE, TRUE)
 
   # Détection de fonctions
   is_function <- str_detect(string = code, pattern = "\\(")
 
 
-  # Extraction du nom des nouvelles variables
-  nom_var <-
-    str_extract(code,
-                pattern = "(?<=as\\s).*")
-  # Extraction du contenu des nouvelles variables
-  contenu <-
-    str_extract(code,
-                pattern = ".*(?=\\sas)") %>%
-    transform_functions()
-
   # Préparation du select général
-  select_code <- nom_var %>%
-    ifelse(is.na(.), code, .) %>%
+  select_code <- noms_var %>%
     # paste0("\"", ., "\"") %>%
     paste(., collapse = ", ") %>%
     paste0("select(", ., ")")
 
   # Affectation des noms de variables à leur contenu
   affectation <-
-    ifelse(is.na(nom_var), NA,
-           paste(nom_var, contenu, sep = " = ")) %>%
+    ifelse(is.na(contenu), NA,
+           paste(noms_var, contenu, sep = " = ")) %>%
     {
       .[!is.na(.)]
     } %>%
@@ -81,8 +69,15 @@ sql_dplyr_select <- function(select_clause) {
     } else {
       ## SI ne contient que des fonctions
       if (all(is_function)) {
-        return_code <- affectation %>%
-          paste0("summarize(", ., ")")
+        if(any(is_create)){
+          return_code <- affectation %>%
+            paste0("summarize(", ., ")")
+        } else {
+          return_code <- noms_var %>%
+            paste(., collapse = ", ") %>%
+            paste0("summarize(", ., ")")
+        }
+
       } else {
         ## SI ne contient que des créations de variables
         if (all(is_create)) {
@@ -142,8 +137,7 @@ sql_to_dplyr <- function(code_sql) {
 
   # Initialisation
   sentence <- decoupe_requete(code_sql,
-                              key_words = c("create",
-                                            "select",
+                              key_words = c("select",
                                             "from",
                                             "where",
                                             "order by",
@@ -234,8 +228,11 @@ sql_to_dplyr <- function(code_sql) {
   # CREATE TABLE ----
   if (any(sentence$kw == "create table")){
     # CAS CREATE TABLE ______ AS
-    nom_table <- sentence$text[(sentence$kw == "create table")] %>%
-          str_match(pattern = regex("([\\S]+)\\sas"))
+    lecture <- sentence$text[(sentence$kw == "create table")] %>%
+          str_match(pattern = regex("([\\S]+)\\s(as|like)(\\s[\\S]+)?"))
+
+    nom_table <-  lecture[ , 2]
+    table_like <- lecture[, 4]
 
     # CAS CREATE TABLE ______ LIKE
 

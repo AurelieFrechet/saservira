@@ -18,6 +18,15 @@ test_that("test boulot", {
   sql_to_dplyr(code_sas)
 })
 
+test_that("test Rémi", {
+  code_sas = "select cyl, sum(drat), max(drat)
+  from mtcars
+  group by cyl
+  order by cyl"
+  expect_equal(sql_to_dplyr(code_sas),
+  "mtcars %>%\n\tgroup_by(cyl) %>%\n\tsummarize(sum(drat), max(drat)) %>%\n\tarrange(cyl)")
+})
+
 
 
 # clause FROM ------------------------------------------------------------
@@ -90,6 +99,16 @@ test_that("group by + having", {
   code_sql <- "select var1, count(*) as nb from tbl1 group by var1 having nb>1"
   expect_equal(sql_to_dplyr(code_sql),
                "tbl1 %>%\n\tgroup_by(var1) %>%\n\tsummarize(nb = n()) %>%\n\tfilter(nb>1)")
+
+})
+
+
+
+# Create Table ------------------------------------------------------------
+
+test_that("create table as", {
+  code_sql = "create table new_table as
+  select * from old_table where var1 = 1"
 
 })
 
