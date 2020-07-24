@@ -16,7 +16,8 @@ sql_dplyr_select <- function(select_clause) {
   code <- select_clause %>%
     str_split(pattern = ",") %>%
     unlist() %>%
-    str_trim
+    str_trim %>%
+    transform_functions()
 
   attribution <- code %>%
     str_split(pattern = "\\sinto\\s?:\\s?|\\sas\\s|\\s")
@@ -28,8 +29,7 @@ sql_dplyr_select <- function(select_clause) {
     noms_var = attribution[, 2]
     contenu  = ifelse(attribution[, 1] == attribution[, 2],
                       NA,
-                      attribution[, 1]) %>%
-      transform_functions()
+                      attribution[, 1])
   } else {
     noms_var = attribution[, 1]
     contenu  = rep(NA, length(noms_var))

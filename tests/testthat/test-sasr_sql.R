@@ -44,37 +44,50 @@ test_that("sql_to_dplyr : clause from", {
 
 test_that("sql_dplyr_select : selection simple", {
   requete_sql <-
-    "var1, var2, var3"
-  expect_equal(sql_dplyr_select(requete_sql),
-               "select(var1, var2, var3)")
+    "select var1, var2, var3
+     from table"
+  expect_equal(sql_to_dplyr(requete_sql),
+               "table %>%\n\tselect(var1, var2, var3)")
 })
 
 test_that("sql_dplyr_select : creation variable 1", {
   requete_sql <-
-    "old as new"
-  expect_equal(sql_dplyr_select(requete_sql),
-               "transmute(new = old)")
+    "select old as new
+     from table"
+  expect_equal(sql_to_dplyr(requete_sql),
+               "table %>%\n\ttransmute(new = old)")
 })
 
 test_that("sql_dplyr_select : creation variable 2", {
   requete_sql <-
-    "*, old as new"
-  expect_equal(sql_dplyr_select(requete_sql),
-               "mutate(new = old)")
+    "select *, old as new
+     from table"
+  expect_equal(sql_to_dplyr(requete_sql),
+               "table %>%\n\tmutate(new = old)")
 })
 
 test_that("sql_dplyr_select : creation variable 3", {
   requete_sql <-
-    "var1, old as new"
-  expect_equal(sql_dplyr_select(requete_sql),
-               "mutate(new = old) %>%\n\tselect(var1, new)")
+    "select var1, old as new
+     from table"
+  expect_equal(sql_to_dplyr(requete_sql),
+               "table %>%\n\tmutate(new = old) %>%\n\tselect(var1, new)")
 })
 
-test_that("sql_dplyr_select : calcul", {
+test_that("sql_dplyr_select : calcul ", {
   requete_sql <-
-    "avg(age) as moy"
-  expect_equal(sql_dplyr_select(requete_sql),
-               "summarize(moy = mean(age))")
+    "select avg(age)
+     from table"
+  expect_equal(sql_to_dplyr(requete_sql),
+               "table %>%\n\tsummarize(mean(age))")
+})
+
+test_that("sql_dplyr_select : calcul avec nouvele var", {
+  requete_sql <-
+    "select avg(age) as moy
+     from table"
+  expect_equal(sql_to_dplyr(requete_sql),
+               "table %>%\n\tsummarize(moy = mean(age))")
 })
 
 
