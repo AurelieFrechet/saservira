@@ -91,6 +91,8 @@ decouper_SAS <- function(code_sas) {
 #'
 #' @examples
 decoupe_requete <- function(requete, key_words){
+  # Mise sous forme de mots :
+  key_words <- paste0("\\b", key_words, "\\b")
   # Definition des mots clés
   pattern_kw <- paste(paste0("(?=", key_words, ")"),
                       collapse = "|")

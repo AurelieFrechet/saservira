@@ -65,6 +65,12 @@ expect_message(decoupe_requete(code_sql,
 
 })
 
+test_that("Cas avec le mot clé contenu dans un mot",{
+  phrase <- "Ceci n'est pas une phrase à découper"
+  sentence <- decoupe_requete(requete = phrase, key_words = "as")
+  expect_null(sentence)
+})
+
 
 # decouper_SAS ------------------------------------------------------------
 
