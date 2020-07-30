@@ -122,6 +122,46 @@ test_that("group by + having", {
 test_that("create table as", {
   code_sql = "create table new_table as
   select * from old_table where var1 = 1"
+  "new_table <- old_table %>%\n\tfilter(var1 == 1)"
 
 })
+
+
+# Jointures ---------------------------------------------------------------
+#source : https://sql.sh/cours/jointures/inner-join
+
+test_that("Jointure simple avec ON", {
+ "SELECT *
+FROM table1
+INNER JOIN table2 ON table1.id = table2.fk_id"
+
+"table1 %>%
+  inner_join(table2, by = c(\"id\" = \"fk_id\"))"
+})
+
+test_that("Jointure simple avec WHERE", {
+  "SELECT *
+FROM table1
+INNER JOIN table2
+WHERE table1.id = table2.fk_id"
+})
+
+test_that("Jointure simple avec ON et selection de variables", {
+  "SELECT id, prenom, nom, date_achat, num_facture, prix_total
+FROM utilisateur
+INNER JOIN commande ON utilisateur.id = commande.utilisateur_id"
+})
+
+test_that("Jointure simple avec ON, selection de variables et filtre", {
+
+"SELECT id, prenom, nom, utilisateur_id
+FROM utilisateur
+LEFT JOIN commande ON utilisateur.id = commande.utilisateur_id
+WHERE utilisateur_id IS NULL"
+})
+
+test_that("Jointure multiple", {
+
+})
+
 

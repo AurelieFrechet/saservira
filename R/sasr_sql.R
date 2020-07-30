@@ -39,6 +39,12 @@ sql_dplyr_select <- function(select_clause) {
   is_create <- ifelse(is.na(contenu), FALSE, TRUE)
 
   # Détection de fonctions
+  # TODO : détection des fonctions d'aggregation uniquement :
+  # - AVG()
+  # - COUNT()
+  # - MAX()
+  # - MIN()
+  # - SUM()
   is_function <- str_detect(string = code, pattern = "\\(")
 
 
@@ -67,7 +73,7 @@ sql_dplyr_select <- function(select_clause) {
       return_code <- select_code %>%
         paste0(., " %>% \n\tdistinct()")
     } else {
-      ## SI ne contient que des fonctions
+      ## SI ne contient que des fonctions d'aggregation
       if (all(is_function)) {
         if(any(is_create)){
           return_code <- affectation %>%
