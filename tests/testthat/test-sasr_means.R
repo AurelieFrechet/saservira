@@ -1,3 +1,5 @@
+
+# With OUTPOUT ------------------------------------------------------------
 test_that("proc means avec output", {
   code_sas = "proc means data=b2 noprint;
   by AA_PRF;
@@ -11,8 +13,58 @@ test_that("proc means avec output", {
   group_by(AA_PRF) %>%
   summarize(mean=weighted.mean(AA_IND, pond))"
 
+  code_sas = "proc means data = sashelp.iris;
+              by Species;
+              var PetalLength;
+              output out = res mean=moyenne;
+              run;"
+
+  "res <- iris %>%
+  group_by(Species) %>%
+  summarize(moyenne = mean(PetalLength))"
 
 })
+
+# Without OUTPUT ----------------------------------------------------------
+
+test_that("proc means : mean and sum on multiple variable", {
+  code_sas = "proc means data=iris mean sum; var Sepal.Length Sepal.Width Petal.Length Petal.Width; run;"
+
+  expect_equal(
+    sasr_means(code_sas),
+    "iris %>%\n\tselect(Sepal.Length, Sepal.Width, Petal.Length, Petal.Width) %>%\n\tsummarize_all(list(mean=mean, sum=sum))"
+  )
+})
+
+test_that("proc means : variables separated by -", {
+  code_sas = "proc means data=iris mean sum; var Sepal.Length-Petal.Width; run;"
+
+  expect_equal(
+    sasr_means(code_sas),
+    "iris %>%\n\tselect(Sepal.Length:Petal.Width) %>%\n\tsummarize_all(list(mean=mean, sum=sum))"
+  )
+})
+
+test_that("proc means : one var", {
+  code_sas = "proc means data=iris mean sum; var Sepal.Length; run;"
+
+  expect_equal(
+    sasr_means(code_sas),
+    "iris %>%\n\tsummarize(mean(Sepal.Length), sum(Sepal.Length))"
+  )
+})
+
+test_that("proc means : one var, correct indic", {
+  code_sas = "proc means data=iris n mean sum p25 p1; var Sepal.Length; run;"
+
+  expect_equal(
+    sasr_means(code_sas),
+    "iris %>%\n\tsummarize(n(), mean(Sepal.Length), sum(Sepal.Length), quantile(Sepal.Length, 25/100), quantile(Sepal.Length, 1/100))"
+  )
+})
+
+
+# Simple request without indicators ---------------------------------------
 
 test_that("iris : proc means simple", {
   code_sas = "proc means data = sashelp.iris;
@@ -27,13 +79,12 @@ test_that("iris : proc means simple", {
 
   "summary(iris)"
 
-  code_sas = "proc means data = sashelp.iris;
-              by Species;
-              var PetalLength;
-              output out = res mean=moyenne;
-              run;"
-
-  "res <- iris %>%
-  group_by(Species) %>%
-  summarize(moyenne = mean(PetalLength))"
 })
+
+
+
+
+
+
+
+
