@@ -164,8 +164,20 @@ transform_functions <- function(chaine){
       replacement = "n()"
     ) %>%
     str_replace_all(
+      pattern = regex("MEAN\\(([a-zA-z0-9._]+)\\)", ignore_case = T),
+      replacement = "mean(\\1)"
+    ) %>%
+    str_replace_all(
+      pattern = regex("MIN\\(([a-zA-z0-9._]+)\\)", ignore_case = T),
+      replacement = "min(\\1)"
+    ) %>%
+    str_replace_all(
+      pattern = regex("MAX\\(([a-zA-z0-9._]+)\\)", ignore_case = T),
+      replacement = "max(\\1)"
+    ) %>%
+    str_replace_all(
       pattern = regex("NMISS\\(([a-zA-z0-9._]+)\\)", ignore_case = T),
-      replacement = "sum(is.na(\\1)"
+      replacement = "sum(is.na(\\1))"
     ) %>%
     str_replace_all(
       pattern = regex("\\bP([0-9]+)\\(([a-zA-z0-9._]+)\\)", ignore_case = T),

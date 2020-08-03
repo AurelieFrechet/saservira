@@ -36,17 +36,37 @@ sasr_means <- function(code_sas){
   means_indic <- means_data[-1] %>%
     { .[!. == "noprint"] } # Exclure les options type noprint
 
+  dplyr_data  <- means_data[1]
+
+
+# Sélection des variables ----------------------------------------------------
+  means_var <- code_net$text[(code_net$kw == "var")]
+
+  dplyr_select <- means_var %>%
+    str_replace_all(pattern = "-", replacement = ":") %>%
+    str_replace_all(pattern = "\\s+", replacement = ", ") %>%
+    paste0("select(", ., ")")
+
+
+# Gestion des indicateurs -------------------------------------------------
   # TODO : si pas d'indicateurs mais pas de output
   if(identical(means_indic, character(0))) {
     # Si OUTPUT : means_indic <- output_indic
-    # Si BY ou Class : means_indic <- "N MEAN STD MIN MAX
-    # Sinon : summary
+    # SI pas d'autres argument que var
+    if (identical(code_net$kw, c("data", "var"))) {
+      code_R <- paste(dplyr_data,
+                      dplyr_select,
+                      "summary()",
+                      sep = " %>%\n\t")
+      return(code_R)
+
+    } else {
+      means_indic <- c("N", "MEAN", "STD", "MIN", "MAX")
+    }
   }
 
-  dplyr_data  <- means_data[1]
 
-  # Sélection des variables ----------------------------------------------------
-  means_var <- code_net$text[(code_net$kw == "var")]
+# Summarize ---------------------------------------------------------------
   #  distinguer s'il y a une ou plusieurs variables
   nb_vars <- str_count(means_var, pattern = "[A-Za-z0-9._]+") #
   if (nb_vars == 1) {
@@ -57,12 +77,6 @@ sasr_means <- function(code_sas){
 
 
   } else{
-    # selection des variables
-    dplyr_select <- means_var %>%
-      str_replace_all(pattern = "-", replacement = ":") %>%
-      str_replace_all(pattern = "\\s+", replacement = ", ") %>%
-      paste0("select(", ., ")")
-
     # summarize_all
     dplyr_summarize <- means_indic %>%
       paste(., ., sep = "=") %>%
@@ -83,12 +97,11 @@ sasr_means <- function(code_sas){
 
 
   # Composition de la sortie
-  requete_dplyr <- c(dplyr_data,
-                     dplyr_groupby,
-                     dplyr_summarize) %>%
-    {
-      .[!is.na(.)]
-    } %>%
+  requete_dplyr <-
+    c(dplyr_data,
+      dplyr_groupby,
+      dplyr_summarize) %>%
+    {.[!is.na(.)]} %>%
     paste(., collapse = " %>%\n\t")
 
  return(requete_dplyr)

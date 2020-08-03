@@ -23,6 +23,11 @@ test_that("proc means avec output", {
   group_by(Species) %>%
   summarize(moyenne = mean(PetalLength))"
 
+  "PROC MEANS DATA=fic1 ;
+  VAR  x1 x2 x3 ind;
+  OUTPUT OUT=fic2  mean=mx1 mx2 mx3  std= ex1e x2 skewness=sx1 kurtosis=kx1;
+  run;"
+
 })
 
 # Without OUTPUT ----------------------------------------------------------
@@ -63,6 +68,13 @@ test_that("proc means : one var, correct indic", {
   )
 })
 
+test_that("proc means : multiple by and class and no indics", {
+  code_sas = "proc means data = diamonds; var carat; by color; class cut; run;"
+  expect_equal(
+  sasr_means(code_sas),
+  "diamonds %>%\n\tgroup_by(color, cut) %>%\n\tsummarize(n(), mean(carat), sd(carat), min(carat), max(carat))"
+  )
+})
 
 # Simple request without indicators ---------------------------------------
 
