@@ -1,33 +1,27 @@
 
 # With OUTPOUT ------------------------------------------------------------
-test_that("proc means avec output", {
-  code_sas = "proc means data=b2 noprint;
-  by AA_PRF;
-  var AA_IND;
-  weight pond;
-  output out =res(drop=_type_ _freq_)
-  mean=;
-  run;"
-
-  "res <- b2 %>%
-  group_by(AA_PRF) %>%
-  summarize(mean=weighted.mean(AA_IND, pond))"
-
-  code_sas = "proc means data = sashelp.iris;
+test_that("proc means avec output iris", {
+   code_sas = "proc means data = sashelp.iris;
               by Species;
               var PetalLength;
               output out = res mean=moyenne;
               run;"
 
-  "res <- iris %>%
-  group_by(Species) %>%
-  summarize(moyenne = mean(PetalLength))"
+expect_equal(
+  sasr_means(code_sas),
+  "res <- sashelp.iris %>%\n\tgroup_by(Species) %>%\n\tsummarize(moyenne = mean(PetalLength))")
 
-  "PROC MEANS DATA=fic1 ;
+})
+
+test_that("proc means avec output test guido", {
+  code_sas = "PROC MEANS DATA=fic1 ;
   VAR  x1 x2 x3 ind;
-  OUTPUT OUT=fic2  mean=mx1 mx2 mx3  std= ex1e x2 skewness=sx1 kurtosis=kx1;
+  OUTPUT OUT=fic2  mean=mx1 mx2 mx3  std= ex1 ex2 skewness=sx1 kurtosis=kx1;
   run;"
 
+  expect_equal(
+  sasr_means(code_sas),
+  "fic2 <- fic1 %>%\n\tsummarize(mx1 = mean(x1), mx2 = mean(x2), mx3 = mean(x3), ex1 = sd(x1), ex2 = sd(x2), sx1 = skewness(x1), kx1 = kurtosis(x1))")
 })
 
 # Without OUTPUT ----------------------------------------------------------
@@ -68,35 +62,45 @@ test_that("proc means : one var, correct indic", {
   )
 })
 
+
+
+# Without indicators ---------------------------------------
+
+
 test_that("proc means : multiple by and class and no indics", {
   code_sas = "proc means data = diamonds; var carat; by color; class cut; run;"
   expect_equal(
-  sasr_means(code_sas),
-  "diamonds %>%\n\tgroup_by(color, cut) %>%\n\tsummarize(n(), mean(carat), sd(carat), min(carat), max(carat))"
+    sasr_means(code_sas),
+    "diamonds %>%\n\tgroup_by(color, cut) %>%\n\tselect(carat) %>%\n\tsummary()"
   )
 })
 
-# Simple request without indicators ---------------------------------------
-
-test_that("iris : proc means simple", {
-  code_sas = "proc means data = sashelp.iris;
-              by Species;
-              run;"
-
-  "by(iris, iris$Species, summary)"
-
-
-  code_sas = "proc means data = sashelp.iris;
-              run;"
-
-  "summary(iris)"
-
+test_that("proc means : multiple variable and no indic", {
+  code_sas = "proc means data=diamonds;
+  var carat price;
+  run;"
+  expect_equal(
+  sasr_means(code_sas),
+  "diamonds %>%\n\tselect(carat, price) %>%\n\tsummary()"
+  )
 })
 
+# Without var -------------------------------------------------------------
 
+test_that("proc means without var", {
+code_sas = "proc means data = sashelp.iris;
+              run;"
+  expect_equal(
+    sasr_means(code_sas),
+    "sashelp.iris %>%\n\tsummary()")
+})
 
+test_that("proc means without var with by", {
+code_sas = "proc means data = sashelp.iris;
+              by Species;
+              run;"
+expect_equal(sasr_means(code_sas),
+             "sashelp.iris %>%\n\tgroup_by(Species) %>%\n\tsummary()")
 
-
-
-
+})
 

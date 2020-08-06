@@ -104,7 +104,8 @@ transform_casewhen <- function(chaine){
                         else_then[, 2])
   }
 
-  requete <- paste0("case_when(", requete, ")")
+  requete <- paste0("case_when(", requete, ")") %>%
+    transform_conditions()
 
   return(requete)
 
@@ -118,62 +119,62 @@ transform_functions <- function(chaine){
 
   chaine <- chaine %>%
     # Fonctions de base SQL
-    str_replace_all(pattern = regex("false", ignore_case = T),          replacement = "FALSE")%>%
-    str_replace_all(pattern = regex("true", ignore_case = T),           replacement = "TRUE") %>%
-    str_replace_all(pattern = regex("avg", ignore_case = T),            replacement = "mean") %>%
-    str_replace_all(pattern = regex("var_samp", ignore_case = T),       replacement = "var")  %>%
-    str_replace_all(pattern = regex("stddev_samp", ignore_case = T),    replacement = "sd")   %>%
-    str_replace_all(pattern = regex("count\\(\\*\\)", ignore_case = T), replacement = "n()")  %>%
-    str_replace_all(pattern = regex("count\\(distinct\\(([a-zA-z0-9._]+)\\)\\)", ignore_case = T),
-                    replacement = "n_distinct(\\1)") %>%
+    str_replace_all(pattern = regex("\\bfalse\\b", ignore_case = T),          replacement = "FALSE")%>%
+    str_replace_all(pattern = regex("\\btrue\\b", ignore_case = T),           replacement = "TRUE") %>%
+    str_replace_all(pattern = regex("\\bavg\\b", ignore_case = T),            replacement = "mean") %>%
+    str_replace_all(pattern = regex("\\bvar_samp\\b", ignore_case = T),       replacement = "var")  %>%
+    str_replace_all(pattern = regex("\\bstddev_samp\\b", ignore_case = T),    replacement = "sd")   %>%
+    str_replace_all(pattern = regex("\\bcount\\(\\*\\)", ignore_case = T), replacement = "n()")  %>%
+    str_replace_all(pattern = regex("\\bcount\\(distinct\\(([a-zA-z0-9._]+)\\)\\)", ignore_case = T),
+                    replacement = "\\bn_distinct(\\1)") %>%
 
   # Indicateurs proc means
 
     str_replace_all(
-      pattern = regex("KURT\\(([a-zA-z0-9._]+)\\)",
+      pattern = regex("\\bKURT\\b",
                       ignore_case = T),
-      replacement = "kurtosis(\\1)"
+      replacement = "kurtosis"
     ) %>%
     str_replace_all(
-      pattern = regex("LCLM\\(([a-zA-z0-9._]+)\\)",
+      pattern = regex("\\bLCLM\\b",
                       ignore_case = T),
-      replacement = "t.test(\\1)"
+      replacement = "t.test"
     ) %>%
     str_replace_all(
-      pattern = regex("UCLM\\(([a-zA-z0-9._]+)\\)",
+      pattern = regex("\\bUCLM\\b",
                       ignore_case = T),
-      replacement = "t.test(\\1)"
+      replacement = "t.test"
     ) %>%
     str_replace_all(
-      pattern = regex("SKEW\\(([a-zA-z0-9._]+)\\)",
+      pattern = regex("\\bSKEW\\b",
                       ignore_case = T),
-      replacement = "skewness(\\1)"
+      replacement = "skewness"
     ) %>%
     str_replace_all(
-      pattern = regex("STDDEV\\(([a-zA-z0-9._]+)\\)",
+      pattern = regex("\\bSTDDEV\\b",
                       ignore_case = T),
-      replacement = "sd(\\1)"
+      replacement = "sd"
     ) %>%
     str_replace_all(
-      pattern = regex("STD\\(([a-zA-z0-9._]+)\\)",
+      pattern = regex("\\bSTD\\b",
                       ignore_case = T),
-      replacement = "sd(\\1)"
+      replacement = "sd"
     ) %>%
     str_replace_all(
       pattern = regex("\\bN\\(([a-zA-z0-9._]+)\\)", ignore_case = T),
       replacement = "n()"
     ) %>%
     str_replace_all(
-      pattern = regex("MEAN\\(([a-zA-z0-9._]+)\\)", ignore_case = T),
-      replacement = "mean(\\1)"
+      pattern = regex("\\bMEAN\\b", ignore_case = T),
+      replacement = "mean"
     ) %>%
     str_replace_all(
-      pattern = regex("MIN\\(([a-zA-z0-9._]+)\\)", ignore_case = T),
-      replacement = "min(\\1)"
+      pattern = regex("\\bMIN\\b", ignore_case = T),
+      replacement = "min"
     ) %>%
     str_replace_all(
-      pattern = regex("MAX\\(([a-zA-z0-9._]+)\\)", ignore_case = T),
-      replacement = "max(\\1)"
+      pattern = regex("\\bMAX\\b", ignore_case = T),
+      replacement = "max"
     ) %>%
     str_replace_all(
       pattern = regex("NMISS\\(([a-zA-z0-9._]+)\\)", ignore_case = T),
@@ -183,10 +184,6 @@ transform_functions <- function(chaine){
       pattern = regex("\\bP([0-9]+)\\(([a-zA-z0-9._]+)\\)", ignore_case = T),
       replacement = "quantile(\\2, \\1/100)"
     )
-
-
-
-
 
     # Case when
 
@@ -201,9 +198,6 @@ transform_functions <- function(chaine){
         replacement = transform_casewhen(chaine_casewhen)
       )
   }
-
-  # Changement des predicats
-  chaine <- transform_conditions(chaine)
 
   return(chaine)
 }
