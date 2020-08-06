@@ -76,7 +76,7 @@ sasr_means <- function(code_sas){
     means_output <- code_net$text[(code_net$kw == "output")] %>%
       decoupe_requete(
         requete = .,
-        key_words = c("out", "n", "mean", "std", "skewness", "kurtosis")
+        key_words = c("out", "n", "mean", "std", "skewness", "kurtosis") # TODO  préparer un vecteur de mots clés
       )
 
     variables <- means_var %>%

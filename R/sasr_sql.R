@@ -132,6 +132,7 @@ sql_to_dplyr <- function(code_sql) {
   # Déclaration des variables
   nom <- colonne <- NULL
   affectation   <- NA
+  dplyr_data    <- NA
   dplyr_mutate  <- NA
   dplyr_select  <- NA
   dplyr_data    <- NA
@@ -156,9 +157,59 @@ sql_to_dplyr <- function(code_sql) {
                                             "create table"))
 
 
-  # Partie GROUP BY ----
-  if (any(sentence$kw == "group by")) {
 
+
+
+  #  FROM ----
+  # TODO : Détecter les abréviations FROM table_machin t1
+  # TODO : gestion plusieurs tables
+  if (any(sentence$kw == "from")) {
+    from_vector <- sentence$text[(sentence$kw == "from")] %>%
+      str_split(pattern = ",") %>%
+      unlist()
+
+    if (length(from_vector) > 1) {
+      # TODO les jointures impropres
+    } else {
+      dplyr_data <- from_vector
+    }
+  }
+
+  # CREATE TABLE ----
+  if (any(sentence$kw == "create table")) {
+    lecture <- sentence$text[(sentence$kw == "create table")] %>%
+      str_match(pattern = regex("([\\S]+)\\s(as|like)?(\\s[\\S]+)?"))
+
+    nom_table <-  lecture[, 2]
+    table_like <- lecture[, 4]
+
+    # CAS CREATE TABLE ______ LIKE
+    if(str_detect(lecture[, 1], pattern = "\\blike\\b") & !is.na(table_like)){
+      dplyr_data <- paste(nom_table, table_like, sep = " <- ")
+    }
+    else {
+      # CAS CREATE TABLE ______ AS
+      dplyr_data <- paste(nom_table, dplyr_data, sep = " <- ")
+    }
+
+  }
+
+  # JOIN ----
+  if (TRUE) {
+    # Possible d'avoir plusieurs jointures
+  }
+
+
+  # WHERE ----
+  if (any(sentence$kw == "where")) {
+    dplyr_filter <- sentence$text[(sentence$kw == "where")] %>%
+      transform_conditions() %>%
+      paste0("filter(", ., ")")
+  }
+
+
+  # GROUP BY ----
+  if (any(sentence$kw == "group by")) {
     # Soustraction des var du group by au select
     var_groupby <- sentence$text[(sentence$kw == "group by")] %>%
       str_split(pattern = ',') %>%
@@ -178,10 +229,18 @@ sql_to_dplyr <- function(code_sql) {
 
 
     dplyr_groupby <- var_groupby %>%
-      paste0("group_by(", . ,")")
+      paste0("group_by(", . , ")")
   }
 
-  # Partie SELECT ----
+
+  # HAVING ----
+  if (any(sentence$kw == "having")) {
+    dplyr_filter <- sentence$text[(sentence$kw == "having")] %>%
+      transform_conditions() %>%
+      paste0("filter(", ., ")")
+  }
+
+  # SELECT ----
   if (sentence$text[(sentence$kw == "select")] != "*"
       & any(sentence$kw == "select")) {
     # Détecter les prefixes et les supprimer
@@ -191,59 +250,16 @@ sql_to_dplyr <- function(code_sql) {
       sql_dplyr_select()
   }
 
-  # Partie FROM ----
-  # TODO : Détecter les abréviations FROM table_machin t1
-  from_vector <- sentence$text[(sentence$kw == "from")] %>%
-    str_split(pattern = ",") %>%
-    unlist()
-
-  if (length(from_vector) > 1) {
-    # TODO les jointures impropres
-  } else {
-    dplyr_data <- from_vector
-  }
-
-
-  # Partie WHERE ----
-  if (any(sentence$kw == "where")) {
-    dplyr_filter <- sentence$text[(sentence$kw == "where")] %>%
-      transform_conditions() %>%
-      paste0("filter(", ., ")")
-  }
-
-  # Partie HAVING ----
-  if (any(sentence$kw == "having")) {
-    dplyr_filter <- sentence$text[(sentence$kw == "having")] %>%
-      transform_conditions() %>%
-      paste0("filter(", ., ")")
-  }
-
-  # Partie Order by ----
+  # ORDER BY ----
   if (any(sentence$kw == "order by")) {
     dplyr_arrange <- sentence$text[(sentence$kw == "order by")] %>%
       str_replace_all(pattern = regex("([\\S]+)\\sdesc", ignore_case = T),
                       replacement = "-\\1") %>%
-      paste0("arrange(", . ,")")
+      paste0("arrange(", . , ")")
   }
 
-  # Jointures ----
-  if (TRUE){
-   # Possible d'avoir plusieurs jointures
-  }
 
-  # CREATE TABLE ----
-  if (any(sentence$kw == "create table")){
-    # CAS CREATE TABLE ______ AS
-    lecture <- sentence$text[(sentence$kw == "create table")] %>%
-          str_match(pattern = regex("([\\S]+)\\s(as|like)(\\s[\\S]+)?"))
 
-    nom_table <-  lecture[ , 2]
-    table_like <- lecture[, 4]
-
-    # CAS CREATE TABLE ______ LIKE
-
-    # CAS CREATE TABLE ______ ()
-  }
 
 
 

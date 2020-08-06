@@ -32,10 +32,10 @@ test_that("test Rémi", {
 # clause FROM ------------------------------------------------------------
 
 test_that("sql_to_dplyr : clause from", {
-  requete_sql <-
+  code_sql <-
     "select *
      from table"
-  expect_equal(sql_to_dplyr(requete_sql), "table")
+  expect_equal(sql_to_dplyr(code_sql), "table")
 })
 
 
@@ -43,50 +43,50 @@ test_that("sql_to_dplyr : clause from", {
 
 
 test_that("sql_dplyr_select : selection simple", {
-  requete_sql <-
+  code_sql <-
     "select var1, var2, var3
      from table"
-  expect_equal(sql_to_dplyr(requete_sql),
+  expect_equal(sql_to_dplyr(code_sql),
                "table %>%\n\tselect(var1, var2, var3)")
 })
 
 test_that("sql_dplyr_select : creation variable 1", {
-  requete_sql <-
+  code_sql <-
     "select old as new
      from table"
-  expect_equal(sql_to_dplyr(requete_sql),
+  expect_equal(sql_to_dplyr(code_sql),
                "table %>%\n\ttransmute(new = old)")
 })
 
 test_that("sql_dplyr_select : creation variable 2", {
-  requete_sql <-
+  code_sql <-
     "select *, old as new
      from table"
-  expect_equal(sql_to_dplyr(requete_sql),
+  expect_equal(sql_to_dplyr(code_sql),
                "table %>%\n\tmutate(new = old)")
 })
 
 test_that("sql_dplyr_select : creation variable 3", {
-  requete_sql <-
+  code_sql <-
     "select var1, old as new
      from table"
-  expect_equal(sql_to_dplyr(requete_sql),
+  expect_equal(sql_to_dplyr(code_sql),
                "table %>%\n\tmutate(new = old) %>%\n\tselect(var1, new)")
 })
 
 test_that("sql_dplyr_select : calcul ", {
-  requete_sql <-
+  code_sql <-
     "select avg(age)
      from table"
-  expect_equal(sql_to_dplyr(requete_sql),
+  expect_equal(sql_to_dplyr(code_sql),
                "table %>%\n\tsummarize(mean(age))")
 })
 
 test_that("sql_dplyr_select : calcul avec nouvele var", {
-  requete_sql <-
+  code_sql <-
     "select avg(age) as moy
      from table"
-  expect_equal(sql_to_dplyr(requete_sql),
+  expect_equal(sql_to_dplyr(code_sql),
                "table %>%\n\tsummarize(moy = mean(age))")
 })
 
@@ -122,9 +122,24 @@ test_that("group by + having", {
 test_that("create table as", {
   code_sql = "create table new_table as
   select * from old_table where var1 = 1"
-  "new_table <- old_table %>%\n\tfilter(var1 == 1)"
+
+  expect_equal(sql_to_dplyr(code_sql),
+  "new_table <- old_table %>%\n\tfilter(var1 == 1)")
 
 })
+
+test_that("requete Sylvain 1", {
+  code_sql = "
+  CREATE TABLE LIB.MY_IRIS AS
+  SELECT *, SepalLength*SepalWidth as result
+  FROM SASHELP.IRIS
+  "
+  expect_equal(sql_to_dplyr(code_sql),
+  "LIB.MY_IRIS <- SASHELP.IRIS %>%\n\tmutate(result = SepalLength*SepalWidth)")
+
+})
+
+
 
 
 # Jointures ---------------------------------------------------------------
@@ -162,6 +177,24 @@ WHERE utilisateur_id IS NULL"
 
 test_that("Jointure multiple", {
 
+})
+
+test_that("requete Sylvain 2", {
+  code_sas = "CREATE TABLE LIB.JOINTURE AS
+  SELECT DISTINCT a.CUSTUMER_ID, a.DATE, sum(b.price) as total_price
+  FROM LIB2.TABLE1 as a
+  LEFT JOIN LIB3.TABLE2 b
+  ON a.CUSTUMER_ID = b.CUSTUMER_ID and a.var1 != b.var2
+  WHERE a.DATE < mdy(1, 1, 2020)
+  GROUP BY a.CUSTUMER_ID, a.DATE
+  HAVING calculated total_price>0;"
+
+  "LIB2.TABLE1 %>%
+  left_join(LIB3.TABLE2, by = c(\"CUSTUMER_ID\"=\"CUSTUMER_ID\")) %>%
+  filter(var1 != var2 & DATE < mdy(1, 1, 2020)) %>%
+  group_by(CUSTUMER_ID, DATE) %>%
+  summarize(total_price = sum(price)) %>%
+  filter(total_price > 0)"
 })
 
 

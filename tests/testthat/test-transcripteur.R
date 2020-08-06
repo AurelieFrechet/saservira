@@ -30,13 +30,23 @@ test_that("code non reconnu", {
 
 })
 
-
-test_that("sasr_sql : code de William", {
-  code_sas <- "Proc sql noprint;
-  select date as date format yyddmm8., field1, length(field2), catx('|',field3,field4) as concat
-  from my_lib.my_table
-  order by date;
-quit;"
-  traducteur(code_sas)
-  "my_lib.my_table %>%\n\tmutate(date = date, length(field2), concat = paste(field3, field4, sep = \"|\")) %>%\n\tselect(date, field1, length(field2), concat))"
+test_that("proc means", {
+  code_sas = "PROC MEANS DATA=TrialSorted;      BY Sex;      VAR Age; RUN;"
+  expect_equal(
+    traducteur(code_sas),
+    "TrialSorted %>%\n\tgroup_by(Sex) %>%\n\tselect(Age) %>%\n\tsummary()"
+  )
 })
+
+
+
+# TODO
+# test_that("sasr_sql : code de William", {
+#   code_sas <- "Proc sql noprint;
+#   select date as date format yyddmm8., field1, length(field2), catx('|',field3,field4) as concat
+#   from my_lib.my_table
+#   order by date;
+# quit;"
+#   traducteur(code_sas)
+#   "my_lib.my_table %>%\n\tmutate(date = date, length(field2), concat = paste(field3, field4, sep = \"|\")) %>%\n\tselect(date, field1, length(field2), concat))"
+# })
