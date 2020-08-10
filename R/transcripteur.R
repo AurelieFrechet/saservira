@@ -7,6 +7,9 @@ reecriture <- function(id, code) {
          },
          "proc contents" = {
            sasr_contents(code)
+         },
+         "proc means" = {
+           sasr_means(code)
          })
 }
 
@@ -14,6 +17,8 @@ reecriture <- function(id, code) {
 #' Transcripteur
 #' @include decoupe.R
 #' @import dplyr
+#' @import stringr
+#' @import stringi
 #' @description traduit du code SAS en R
 #'
 #' @param input fichier SAS

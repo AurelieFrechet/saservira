@@ -221,9 +221,12 @@ WHERE utilisateur_id IS NOT NULL"
 
 test_that("Jointure multiple", {
   code_sql = "SELECT Orders.OrderID, Customers.CustomerName, Shippers.ShipperName
-FROM ((Orders
-INNER JOIN Customers ON Orders.CustomerID = Customers.CustomerID)
-INNER JOIN Shippers ON Orders.ShipperID = Shippers.ShipperID); "
+FROM Orders
+INNER JOIN Customers ON Orders.CustomerID = Customers.CustomerID
+INNER JOIN Shippers ON Orders.ShipperID = Shippers.ShipperID"
+  expect_equal(sql_to_dplyr(code_sql),
+               "Orders %>%\n\tinner_join(Customers, by = c(\"CustomerID\" = \"CustomerID\")) %>%\n\tinner_join(Shippers, by = c(\"ShipperID\" = \"ShipperID\")) %>%\n\tselect(OrderID, CustomerName, ShipperName)"
+  )
 })
 
 test_that("Jointure impropre", {

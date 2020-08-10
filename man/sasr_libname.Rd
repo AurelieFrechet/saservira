@@ -7,11 +7,12 @@
 sasr_libname(code_sas)
 }
 \arguments{
-\item{code_sas}{}
+\item{code_sas}{code en entrée contenant le libname}
 }
 \value{
-
+expression R associée
 }
 \description{
-sasr_libname
+transformation l'un libname en une affectation
+d'un chemin dans un objet R : Convertit LIBNAME nom chemin en nom <- chemin
 }
