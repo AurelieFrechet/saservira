@@ -1,4 +1,22 @@
 
+# utils SQL -------------------------------------------------------------
+test_that("get_alias", {
+  expect_equal(get_alias("table2 as t2"), "t2")
+  expect_equal(get_alias("table2 t2"), "t2")
+  expect_equal(get_alias("table2"), "table2")
+})
+
+test_that("get_table", {
+  expect_equal(get_table("table2 as t2"), "table2")
+  expect_equal(get_table("table2 t2"), "table2")
+  expect_equal(get_table("table2"), "table2")
+})
+
+test_that("read_join", {
+  expect_equal(read_join("t1", "t2", "t1.id = t2.fk_id"), "\"id\" = \"fk_id\"")
+  expect_equal(read_join("t1", "t2", "t2.fk_id = t1.id"), "\"id\" = \"fk_id\"")
+})
+
 
 # sasr_sql  ---------------------------------------------------------------
 test_that("sasr_sql : iris", {
@@ -144,50 +162,92 @@ test_that("requete Sylvain 1", {
 
 # Jointures ---------------------------------------------------------------
 #source : https://sql.sh/cours/jointures/inner-join
+# https://www.w3schools.com/sql/sql_join_left.asp
 
 test_that("Jointure simple avec ON", {
- "SELECT *
+  code_sql = "SELECT *
 FROM table1
 INNER JOIN table2 ON table1.id = table2.fk_id"
 
-"table1 %>%
-  inner_join(table2, by = c(\"id\" = \"fk_id\"))"
+  expect_equal(
+    sql_to_dplyr(code_sql),
+    "table1 %>%\n\tinner_join(table2, by = c(\"id\" = \"fk_id\"))"
+  )
+})
+
+test_that("Double jointure simple avec ON", {
+  code_sql = "SELECT *
+FROM table1
+INNER JOIN table2 ON table1.id = table2.fk_id
+INNER JOIN table3 ON table3.nom = table1.nom"
+
+  expect_equal(
+    sql_to_dplyr(code_sql),
+    "table1 %>%\n\tinner_join(table2, by = c(\"id\" = \"fk_id\")) %>%\n\tinner_join(table3, by = c(\"nom\" = \"nom\"))"
+  )
 })
 
 test_that("Jointure simple avec WHERE", {
-  "SELECT *
+  code_sql = "SELECT *
 FROM table1
 INNER JOIN table2
 WHERE table1.id = table2.fk_id"
+
+  expect_equal(
+    sql_to_dplyr(code_sql),
+    "table1 %>%\n\tinner_join(table2, by = c(\"id\" = \"fk_id\"))"
+  )
 })
 
 test_that("Jointure simple avec ON et selection de variables", {
-  "SELECT id, prenom, nom, date_achat, num_facture, prix_total
+  code_sql = "SELECT id, prenom, nom, date_achat, num_facture, prix_total
 FROM utilisateur
 INNER JOIN commande ON utilisateur.id = commande.utilisateur_id"
+
+  expect_equal(
+    sql_to_dplyr(code_sql),
+    "utilisateur %>%\n\tinner_join(commande, by = c(\"id\" = \"utilisateur_id\")) %>%\n\tselect(id, prenom, nom, date_achat, num_facture, prix_total)"
+  )
 })
 
 test_that("Jointure simple avec ON, selection de variables et filtre", {
-
-"SELECT id, prenom, nom, utilisateur_id
+  code_sql = "SELECT id, prenom, nom, utilisateur_id
 FROM utilisateur
 LEFT JOIN commande ON utilisateur.id = commande.utilisateur_id
-WHERE utilisateur_id IS NULL"
+WHERE utilisateur_id IS NOT NULL"
+  expect_equal(sql_to_dplyr(code_sql),
+               "utilisateur %>%\n\tleft_join(commande, by = c(\"id\" = \"utilisateur_id\")) %>%\n\tselect(id, prenom, nom, utilisateur_id) %>%\n\tfilter(!is.na(utilisateur_id))")
 })
 
 test_that("Jointure multiple", {
-
+  code_sql = "SELECT Orders.OrderID, Customers.CustomerName, Shippers.ShipperName
+FROM ((Orders
+INNER JOIN Customers ON Orders.CustomerID = Customers.CustomerID)
+INNER JOIN Shippers ON Orders.ShipperID = Shippers.ShipperID); "
 })
 
+test_that("Jointure impropre", {
+  code_sql = "SELECT Orders.OrderID, Orders.OrderDate, Customers.CustomerName
+FROM Customers
+INNER JOIN Orders ON Customers.CustomerID=Orders.CustomerID
+WHERE Customers.CustomerName='Around the Horn'"
+  sql_to_dplyr(code_sql)
+
+"SELECT Orders.OrderID, Orders.OrderDate, Customers.CustomerName
+FROM Customers, Orders
+WHERE Customers.CustomerName='Around the Horn' AND Customers.CustomerID=Orders.CustomerID;"
+
+  })
+
 test_that("requete Sylvain 2", {
-  code_sas = "CREATE TABLE LIB.JOINTURE AS
+  code_sql = "CREATE TABLE LIB.JOINTURE AS
   SELECT DISTINCT a.CUSTUMER_ID, a.DATE, sum(b.price) as total_price
   FROM LIB2.TABLE1 as a
   LEFT JOIN LIB3.TABLE2 b
   ON a.CUSTUMER_ID = b.CUSTUMER_ID and a.var1 != b.var2
   WHERE a.DATE < mdy(1, 1, 2020)
   GROUP BY a.CUSTUMER_ID, a.DATE
-  HAVING calculated total_price>0;"
+  HAVING calculated total_price>0"
 
   "LIB2.TABLE1 %>%
   left_join(LIB3.TABLE2, by = c(\"CUSTUMER_ID\"=\"CUSTUMER_ID\")) %>%

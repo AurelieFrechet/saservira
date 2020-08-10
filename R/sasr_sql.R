@@ -1,7 +1,60 @@
 # Merci à Nolwenn Lannuel :)
-
-
 #' @include utils.R
+
+# Utils SQL ---------------------------------------------------------------
+
+get_alias <- function(segment_table){
+  if (str_detect(segment_table, pattern = "\\bas\\b")) {
+    alias_table <- str_match_all(segment_table,
+                                  pattern = "[\\S]+\\sas\\s([\\S]+)")[[1]][, 2]
+
+  } else {
+    if (str_count(segment_table, "\\w+") == 2) {
+      alias_table <- str_match_all(segment_table,
+                                    pattern = "[\\S]+\\s([\\S]+)")[[1]][, 2]
+
+    } else {
+      alias_table <- segment_table
+    }
+  }
+  return(alias_table)
+}
+
+get_table <- function(segment_table){
+  if (str_detect(segment_table, pattern = "\\bas\\b")) {
+    nom_table <- str_match_all(segment_table,
+                                 pattern = "([\\S]+)\\sas\\s[\\S]+")[[1]][, 2]
+
+  } else {
+    if (str_count(segment_table, "[\\S]+") == 2) {
+      nom_table <- str_match_all(segment_table,
+                                   pattern = "([\\S]+)\\s[\\S]+")[[1]][, 2]
+
+    } else {
+      nom_table <- segment_table
+    }
+  }
+  return(nom_table)
+}
+
+
+read_join <- function(from_table, join_table, join_expression){
+
+  cles_sql <- join_expression %>%
+    str_split(pattern = "\\s*=\\s*") %>%
+    unlist() %>%
+    str_split(pattern = "\\.")
+
+  id_join        <- sapply(cles_sql, function(i) i[2])
+  names(id_join) <- sapply(cles_sql, function(i) i[1])
+
+  jointure <- paste0("\"", id_join[from_table],"\"",
+                     " = ",
+                     "\"", id_join[join_table],"\"")
+  return(jointure)
+}
+
+
 sql_dplyr_select <- function(select_clause) {
   # Détection du ALL
   is_all       <- select_clause == "*"
@@ -171,14 +224,15 @@ sql_to_dplyr <- function(code_sql) {
     if (length(from_vector) > 1) {
       # TODO les jointures impropres
     } else {
-      dplyr_data <- from_vector
+      alias_from <- get_alias(from_vector)
+      dplyr_data <- get_table(from_vector)
     }
   }
 
   # CREATE TABLE ----
   if (any(sentence$kw == "create table")) {
     lecture <- sentence$text[(sentence$kw == "create table")] %>%
-      str_match(pattern = regex("([\\S]+)\\s(as|like)?(\\s[\\S]+)?"))
+      str_match(pattern = regex("([\\S]+)\\s(as|like)?(\\s[\\S]+)?", ignore_case = T))
 
     nom_table <-  lecture[, 2]
     table_like <- lecture[, 4]
@@ -195,16 +249,62 @@ sql_to_dplyr <- function(code_sql) {
   }
 
   # JOIN ----
-  if (TRUE) {
-    # Possible d'avoir plusieurs jointures
+  if (any(str_detect(sentence$kw, "join"))) {
+    join_expression <- sentence$text[str_detect(sentence$kw, "join")]
+    nom_jointures   <- sentence$kw[str_detect(sentence$kw, "join")]%>%
+      tolower() %>%
+      str_replace(pattern = "\\s+", "_")
+
+    # If there is no ON => WHERE
+    if (any(str_detect(join_expression, pattern = regex("\\bon\\b", ignore_case = T)))) {
+      jointures <- join_expression %>%
+        str_split(pattern = regex("\\s+on\\s+", ignore_case = T))
+
+      tables_jointures      <- sapply(jointures, function(i) i[1])
+      conditions_jointures  <- sapply(jointures, function(i) i[2])
+    } else {
+      tables_jointures      <- join_expression %>% unlist()
+      conditions_jointures  <- str_extract_all(
+        sentence$text[str_detect(sentence$kw, "where")],
+        pattern = "\\w+\\.\\w+\\s*=\\s*\\w+\\.\\w++"
+      ) %>%
+        unlist()
+      sentence$text[str_detect(sentence$kw, "where")] <- str_remove_all(
+        sentence$text[str_detect(sentence$kw, "where")],
+        pattern = "\\w+\\.\\w+\\s*=\\s*\\w+\\.\\w++"
+      )
+    }
+
+
+    dplyr_join <-  sapply(1:length(tables_jointures), function(i) {
+      alias_jointures       <- get_alias(tables_jointures[i])
+      read_join(alias_from,
+                alias_jointures,
+                conditions_jointures[i]) %>%
+        paste(., collapse = ", ") %>%
+        paste0(nom_jointures[i],
+               "(",
+               tables_jointures[i],
+               ", ",
+               "by = c(",
+               .,
+               "))")
+    }) %>%
+      paste(., collapse = " %>%\n\t")
+
+
+
   }
 
 
   # WHERE ----
   if (any(sentence$kw == "where")) {
-    dplyr_filter <- sentence$text[(sentence$kw == "where")] %>%
-      transform_conditions() %>%
-      paste0("filter(", ., ")")
+    # If non-empty WHERE (because of JOIN cleaning)
+    if (str_trim(sentence$text[(sentence$kw == "where")]) != "") {
+      dplyr_filter <- sentence$text[(sentence$kw == "where")] %>%
+        transform_conditions() %>%
+        paste0("filter(", ., ")")
+    }
   }
 
 
@@ -266,6 +366,7 @@ sql_to_dplyr <- function(code_sql) {
 
   # Return
   requete_dplyr <- c(dplyr_data,
+                     dplyr_join,
                      dplyr_groupby,
                      dplyr_mutate,
                      dplyr_select,

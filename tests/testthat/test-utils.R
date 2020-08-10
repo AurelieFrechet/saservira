@@ -27,6 +27,9 @@ test_that("Equations", {
                "var1 > 1 & var2 == \"frechet\" & var != \"vide\"")
 })
 
+test_that("conditions", {
+  expect_equal(transform_conditions("utilisateur_id IS NOT NULL"), "!is.na(utilisateur_id)")
+})
 
 # transform functions -----------------------------------------------------
 
