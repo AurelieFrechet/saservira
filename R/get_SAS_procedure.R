@@ -3,7 +3,6 @@
 #' @import magrittr
 #' @description read SAS code, identify procedures and extract their contents
 #' @param text SAS code
-#' @param procs all verbs for SAS procedures (except DATA)
 #'
 #' @return list of identified procedures as
 #' -proc : name of the procedure in listed values in procs
@@ -11,53 +10,20 @@
 #'
 #' @examples
 #' get_SAS_procedure(text = "PROC CONTENTS DATA=sample;RUN;")
-get_SAS_procedure <- function(text ,
-                              procs = c(
-                                "chart",
-                                "contents",
-                                "corr",
-                                "freq",
-                                "gchart",
-                                "genmod",
-                                "glm",
-                                "gplot",
-                                "means",
-                                "plot",
-                                "print",
-                                "sql",
-                                "summary",
-                                "transpose",
-                                "univariate"
-                              )) {
+get_SAS_procedure <- function(text) {
   # Detect procedures
-  procedures <- sapply(
-    X = procs,
-    FUN = function(x)
-      if(x == "sql"){
-        str_match(
-          string  = text,
-          pattern = "proc sql\\s?;\\s*(.*?)\\s*(run|quit);"
-        )[, 2]
-      }else{
-        str_match(
-          string  = text,
-          pattern = paste0("proc ", x , "\\s*(.*?)\\s*(run|quit);")
-        )[, 2]
-      }
+  matching <- str_match(string  = text,
+            pattern = "proc (\\w+)\\s?;?\\s*(.*?)\\s*(run|quit);")
 
-  )
+  proc <- matching[, 2]
+  contenu <- matching[, 3]
 
-  if (all(is.na(procedures))) {
+  if (is.na(proc)) {
     message("text not identified")
     return(NULL)
   }
-  procedures <- procedures[!is.na(procedures)]
 
-  # Verify length = 1 : only one procedure can be find if the split it done correctly
-  if (length(procedures) > 1)
-    warning("More than one procedure is found in the text")
-
-  return(list(proc = names(procedures),
-              contenu = unname(procedures)))
+  return(list(proc = proc,
+              contenu = contenu))
 
 }

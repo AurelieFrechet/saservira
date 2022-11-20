@@ -24,10 +24,6 @@ test_that("PROC CONTENTS", {
 
 })
 
-test_that("PROC CORR", {
-  ""
-})
-
 test_that("PROC FREQ", {
   expect_equal(
     get_SAS_procedure(text = "proc freq data = example1; tables y; run;"),
@@ -46,17 +42,7 @@ test_that("PROC GCHART", {
   )
 })
 
-test_that("PROC GENMOD", {
-  ""
-})
 
-test_that("PROC GLM", {
-  ""
-})
-
-test_that("PROC GPLOT", {
-  ""
-})
 
 test_that("PROC MEANS", {
   expect_equal(
@@ -88,14 +74,4 @@ test_that("PROC SQL", {
   )
 })
 
-test_that("PROC SUMMARY", {
-  ""
-})
 
-test_that("PROC TRANSPOSE", {
-  ""
-})
-
-test_that("PROC UNIVARIATE", {
-  ""
-})
