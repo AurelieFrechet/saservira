@@ -1,13 +1,10 @@
-#' Title
+#' split_SAS_procedures
 #'
 #' @import stringr
 #' @import magrittr
-#' @param text
+#' @param code SAS to split into procedures
 #'
-#' @return
-#' @export
-#'
-#' @examples
+#' @return character vector, procedures splitted
 split_SAS_procedures <- function(text) {
   # Clean Text
     text %>%

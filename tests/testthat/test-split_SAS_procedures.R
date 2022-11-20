@@ -93,7 +93,7 @@ quit;
 "
     ),
     c(
-      "data totals; length dept $ 7 site $ 8; input dept site quarter sales; datalines; parts sydney 1 7043.97 parts atlanta 1 8225.26 parts paris 1 5543.97 tools sydney 4 1775.74 tools atlanta 4 3424.19 tools paris 4 6914.25 ; run;",
+      "data totals; length dept $ 7 site $ 8; input dept site quarter sales; datalines; parts sydney 1 7043.97 parts atlanta 1 8225.26 parts paris 1 5543.97 tools sydney 4 1775.74 tools atlanta 4 3424.19 tools paris 4 6914.25 run;",
       "title 'total sales'; footnote j=r 'gchbksum ';",
       "proc gchart data=totals; format sales dollar8.; block site / sumvar=sales; run;"
     )

@@ -61,9 +61,6 @@ test_that("PROC PLOT", {
   )
   })
 
-test_that("PROC PRINT", {
-  ""
-})
 
 test_that("PROC SQL", {
   expect_equal(
