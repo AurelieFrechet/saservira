@@ -16,7 +16,10 @@ get_SAS_procedure <- function(text) {
             pattern = "proc (\\w+)\\s?;?\\s*(.*?)\\s*(run|quit);")
 
   proc <- matching[, 2]
-  contenu <- matching[, 3]
+  contenu <- matching[, 3] %>%
+    strsplit(";") %>%
+    unlist() %>%
+    str_trim()
 
   if (is.na(proc)) {
     message("text not identified")
